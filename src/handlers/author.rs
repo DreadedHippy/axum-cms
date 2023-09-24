@@ -1,4 +1,5 @@
 use axum::Json;
+use axum::extract::Path;
 
 use crate::models::author::{Author, AuthorForCreate};
 use crate::models::custom_response::{CustomResponse, CustomResponseData};
@@ -29,6 +30,19 @@ pub async fn handler_author_get_all() -> Result<Json<CustomResponse<Author>>> {
 		true,
 		Some(format!("Author Created")),
 		Some(CustomResponseData::Collection(random_authors))
+	);
+
+	Ok(Json(response))
+}
+
+pub async fn handler_author_get_specific(Path(id): Path<u64>) -> Result<Json<CustomResponse<Author>>> {
+
+	let author: Author = Author { id, name: format!("Resulting Author") };
+
+	let response = CustomResponse::<Author>::new(
+		true,
+		Some(format!("Author Created")),
+		Some(CustomResponseData::Item(author))
 	);
 
 	Ok(Json(response))
