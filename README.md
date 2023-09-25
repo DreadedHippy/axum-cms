@@ -7,7 +7,7 @@ A simple production-ready backend server template for building the backend serve
 - Posts (The actual content to be managed) // `WIP`
 
 ## Information
-- Database used: Postgres //
+- Database used: Postgres
 
 ## Instructions
-- Create a .env file in yout local copy of the repository, and set the env variable `DATABASE_URL`, your postgres database
+- Create a .env file in your local copy of the repository, and set the env variable `DATABASE_URL`, your postgres database
