@@ -25,8 +25,6 @@ impl AppState {
 		.fetch_one(&self.pool)
 		.await?;
 
-		// let id: i64 = rec.get("id");
-		// println!("{}" ,id);
 		let result = Author {
 			id: rec.get("id"),
 			name: rec.get("name"),

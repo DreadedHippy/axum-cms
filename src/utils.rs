@@ -17,6 +17,5 @@ pub async fn main_response_mapper(res:Response) -> Response {
 pub async fn connect_to_postgres() -> Result<Pool<Postgres>> {
 	let pool = PgPool::connect(&env::var("DATABASE_URL")?).await?;
 
-	// let pool: PgPool = Pool::<Postgres>::connect_with(pool_options).await?;
 	Ok(pool)
 }
