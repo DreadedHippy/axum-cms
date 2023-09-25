@@ -10,7 +10,9 @@ pub enum Error {
 	AuthFailNoAuthTokenCookie,
 
 	// -- Model errors.
-	TicketDeleteFailIdNotFound {id: u64}
+	CouldNotCreateAuthor
+
+	// -- 
 }
 
 impl IntoResponse for Error {
