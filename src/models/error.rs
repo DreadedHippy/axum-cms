@@ -10,7 +10,16 @@ pub enum Error {
 	AuthFailNoAuthTokenCookie,
 
 	// -- Model errors.
-	CouldNotCreateAuthor
+	
+	// Author
+	CouldNotCreateAuthor,
+	CouldNotGetAuthors,
+	CouldNotGetAuthor,
+
+	// Post
+	CouldNotCreatePost,
+	CouldNotGetPosts,
+	CouldNotGetPost
 
 	// -- 
 }

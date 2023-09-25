@@ -21,17 +21,13 @@ pub async fn handler_author_create(State(app_state): State<AppState>, Json(autho
 }
 
 pub async fn handler_author_get_all(State(app_state): State<AppState>) -> Result<Json<CustomResponse<Author>>> {
-	let random_authors: Vec<Author> = vec![
-		Author::new(format!("Aizon"), format!("mail@mail.com")),
-		Author::new(format!("The"), format!("mail@mail.com")),
-		Author::new(format!("Dreaded"), format!("mail@mail.com")),
-		Author::new(format!("Hippy"), format!("mail@mail.com")),
-	];
+
+	let authors = app_state.get_all_authors().await.map_err(|e|  Error::CouldNotGetAuthors)?;
 
 	let response = CustomResponse::<Author>::new(
 		true,
-		Some(format!("Author Created")),
-		Some(CustomResponseData::Collection(random_authors))
+		Some(format!("Authors Retrieved")),
+		Some(CustomResponseData::Collection(authors))
 	);
 
 	Ok(Json(response))
@@ -41,12 +37,11 @@ pub async fn handler_author_get_specific(State(app_state): State<AppState>, Path
 
 	let pool = app_state.pool;
 
-
 	let author: Author = Author { id, name: format!("Resulting Author"), email: format!("result@mail.com") };
 
 	let response = CustomResponse::<Author>::new(
 		true,
-		Some(format!("Author Created")),
+		Some(format!("Author Retrieved")),
 		Some(CustomResponseData::Item(author))
 	);
 
