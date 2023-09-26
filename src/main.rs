@@ -7,12 +7,14 @@ use dotenv::dotenv;
 use models::state::AppState;
 use routes::all_routes;
 use sqlx::{Pool, Postgres};
+use tower_cookies::CookieManagerLayer;
 use utils::{main_response_mapper, connect_to_postgres};
 
 mod routes;
 mod handlers;
 mod utils;
 mod models;
+mod middlewares;
 
 #[tokio::main]
 async fn main() -> Result<()>{    
@@ -26,7 +28,8 @@ async fn main() -> Result<()>{
     let app_state: AppState = AppState { pool };
 
     let all_routes = all_routes(app_state)
-        .layer(middleware::map_response(main_response_mapper));
+        .layer(middleware::map_response(main_response_mapper))
+		.layer(CookieManagerLayer::new());
 
     // Start the server
     Server::bind(&addr)

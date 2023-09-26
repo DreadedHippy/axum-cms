@@ -8,6 +8,8 @@ pub enum Error {
 
 	// -- Auth errors.
 	AuthFailNoAuthTokenCookie,
+	AuthFailCookieExpired,
+	InvalidJwt,
 
 	// -- Model errors.
 	
@@ -19,7 +21,10 @@ pub enum Error {
 	// Post
 	CouldNotCreatePost,
 	CouldNotGetPosts,
-	CouldNotGetPost
+	CouldNotGetPost,
+
+	// Server
+	InternalServerError
 
 	// -- 
 }

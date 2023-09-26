@@ -7,9 +7,12 @@ use crate::models::author::{Author, AuthorForCreate};
 use crate::models::custom_response::{CustomResponse, CustomResponseData};
 use crate::models::error::{Result, Error};
 use crate::models::state::AppState;
+use crate::utils::auth::create_jwt;
 
 pub async fn handler_author_create(State(app_state): State<AppState>, Json(author_info): Json<AuthorForCreate>) -> Result<Json<CustomResponse<Author>>> {
+	println!("->> {:<12} - handler_author_create", "HANDLER");
 	let author = app_state.create_author(author_info).await.map_err(|e| Error::CouldNotCreateAuthor)?;
+	let jwt = create_jwt(author.email.clone())?;
 
 	let response = CustomResponse::<Author>::new(
 		true,

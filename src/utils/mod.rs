@@ -3,8 +3,13 @@ use std::env;
 use anyhow::Ok;
 use anyhow::Result;
 use axum::response::Response;
+use chrono::Duration;
 use sqlx::postgres::PgConnectOptions;
 use sqlx::{PgPool, Pool, Postgres};
+
+pub mod auth;
+
+const JWT_DURATION_IN_SECONDS: i64 = 60 * 60 * 2;
 
 
 pub async fn main_response_mapper(res:Response) -> Response {
