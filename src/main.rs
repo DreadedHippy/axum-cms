@@ -8,7 +8,7 @@ use models::state::AppState;
 use routes::all_routes;
 use sqlx::{Pool, Postgres};
 use tower_cookies::CookieManagerLayer;
-use utils::{main_response_mapper, connect_to_postgres};
+use utils::{main_response_mapper, connect_to_postgres, cache::create_redis_connection};
 
 mod routes;
 mod handlers;
@@ -19,6 +19,7 @@ mod middlewares;
 #[tokio::main]
 async fn main() -> Result<()>{    
     dotenv().ok();
+    // Declare host and port number
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
 
     // Get Postgresql connection pool
@@ -26,6 +27,9 @@ async fn main() -> Result<()>{
 
     // Initialize App State with connection pool
     let app_state: AppState = AppState { pool };
+
+    // Get Redis Client;
+    let connection = create_redis_connection().await?;
 
     let all_routes = all_routes(app_state)
         .layer(middleware::map_response(main_response_mapper))

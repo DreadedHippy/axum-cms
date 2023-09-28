@@ -8,6 +8,7 @@ use sqlx::postgres::PgConnectOptions;
 use sqlx::{PgPool, Pool, Postgres};
 
 pub mod auth;
+pub mod cache;
 
 const JWT_DURATION_IN_SECONDS: i64 = 60 * 60 * 2;
 
