@@ -1,6 +1,6 @@
 use sqlx::{Pool, Postgres, Error, Row};
 
-use crate::models::author::Author;
+use crate::models::author::{Author, AuthorForResult};
 
 use super::{author::AuthorForCreate, post::{PostForCreate, Post}};
 
@@ -12,21 +12,21 @@ pub struct AppState {
 impl AppState {
 	// region: --Database Manipulations for authors
 	
-	pub async fn create_author(&self, author_info: AuthorForCreate) -> Result<Author, Error>{
+	pub async fn create_author(&self, author_info: AuthorForCreate) -> Result<AuthorForResult, Error>{
 		let q = r#"
-		INSERT INTO authors (name, email)
-		VALUES( $1, $2)
+		INSERT INTO authors (name, email, password)
+		VALUES( $1, $2, $3)
 		RETURNING *
 		"#;
 
 		let rec = sqlx::query(q)
 		.bind(author_info.name)
-		.bind(author_info.email)		
+		.bind(author_info.email)
+		.bind(author_info.password)
 		.fetch_one(&self.pool)
 		.await?;
 
-		let result = Author {
-			id: rec.get("id"),
+		let result = AuthorForResult {
 			name: rec.get("name"),
 			email: rec.get("email")
 		};
@@ -68,6 +68,20 @@ impl AppState {
 		Ok(author)
 	}
 
+	pub async fn get_author_by_email(&self, email: String) -> Result<Author, Error> {
+		let q = r#"
+		SELECT * FROM authors where email = $1
+		"#;
+
+		let record = sqlx::query_as::<_, Author>(q);
+
+		let author = record
+		.bind(email)
+		.fetch_one(&self.pool)
+		.await?;
+
+		Ok(author)
+	}
 	// endregion: --Database Manipulations for authors
 }
 
@@ -126,6 +140,28 @@ impl AppState {
 		let post = record
 		.bind(id)
 		.fetch_one(&self.pool)
+		.await?;
+
+		Ok(post)
+	}
+
+	pub async fn get_posts_by_author(&self, email: String) -> Result<Vec<Post>, Error> {
+		println!("{}", email);
+		let q = r#"
+		SELECT *
+		FROM posts p
+		WHERE p.author_id IN (
+			SELECT id
+			FROM authors
+			WHERE email = $1
+		)
+		"#;
+
+		let record = sqlx::query_as::<_, Post>(q);
+
+		let post = record
+		.bind(email)
+		.fetch_all(&self.pool)
 		.await?;
 
 		Ok(post)

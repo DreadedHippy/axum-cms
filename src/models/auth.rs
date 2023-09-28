@@ -14,7 +14,7 @@ pub struct SignupPayload {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Claims {
+pub struct Claims { // For JWT creation
 	pub email: String,
 	pub exp: usize,
 	pub iat: usize

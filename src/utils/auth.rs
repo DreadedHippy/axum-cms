@@ -2,17 +2,18 @@ use std::env;
 
 use chrono::{Utc, Duration};
 use jsonwebtoken::{encode, Header, EncodingKey, crypto::verify, DecodingKey, decode, Validation, Algorithm};
+use bcrypt;
 
 use crate::models::{auth::Claims, error::{Error, Result}};
 
 use super::JWT_DURATION_IN_SECONDS;
 
-pub fn hash_password() {
-
+pub fn hash_password(password: String) -> Result<String> {
+	bcrypt::hash(password, 12).map_err(|_| Error::InternalServerError)
 }
 
-pub fn verify_hash() {
-
+pub fn verify_hash(password: String, hash: &str) -> Result<bool> {
+	bcrypt::verify(password, hash).map_err(|_| Error::InternalServerError)
 }
 
 pub fn create_jwt(email: String) -> Result<String>{

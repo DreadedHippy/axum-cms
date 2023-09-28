@@ -17,8 +17,16 @@ pub struct PostForCreate {
 	pub author_id: i64
 }
 
+#[derive(Debug, Deserialize)]
+pub struct PostParams {
+	pub author: Option<String> // The author's email
+}
+
+
 impl Post {
 	pub fn new(title: String, content: String, author_id: i64) -> Self {
 		Self { id: 0, title, content, author_id }
 	}
 }
+
+

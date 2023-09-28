@@ -18,3 +18,4 @@ anyhow = "1"
 dotenv = "0.15.0"
 sqlx = { version = "0.7.1", features = ["postgres", "runtime-tokio-rustls"] }
 chrono = "0.4.31"
+bcrypt = "0.15.0"
