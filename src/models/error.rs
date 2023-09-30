@@ -24,7 +24,11 @@ pub enum Error {
 	CouldNotGetPost,
 
 	// Server
-	InternalServerError
+	InternalServerError,
+
+	// Cache
+	CouldNotConnectToRedis,
+	// CouldNotFetchPosts,
 
 	// -- 
 }

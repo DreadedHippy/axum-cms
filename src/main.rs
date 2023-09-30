@@ -8,7 +8,7 @@ use models::state::AppState;
 use routes::all_routes;
 use sqlx::{Pool, Postgres};
 use tower_cookies::CookieManagerLayer;
-use utils::{main_response_mapper, connect_to_postgres, cache::create_redis_connection};
+use utils::{main_response_mapper, connect_to_postgres, cache::{create_redis_connection, initialize_cache}};
 
 mod routes;
 mod handlers;
@@ -29,7 +29,14 @@ async fn main() -> Result<()>{
     let app_state: AppState = AppState { pool };
 
     // Get Redis Client;
-    let connection = create_redis_connection().await?;
+    let connection = create_redis_connection().await.unwrap();
+
+    // Get information to initialize the cache
+    let initial_authors = app_state.get_all_authors().await?;
+    let initial_posts = app_state.get_all_posts().await?;
+
+    // Initialize the cache
+    initialize_cache(initial_authors, initial_posts).await?;
 
     let all_routes = all_routes(app_state)
         .layer(middleware::map_response(main_response_mapper))
@@ -40,6 +47,8 @@ async fn main() -> Result<()>{
         .serve(all_routes.into_make_service())
         .await
         .unwrap();
+
+    println!("Axum server listening on port 3000");
 
     Ok(())
 }

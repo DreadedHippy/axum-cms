@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod cache;
 
 
 pub const AUTH_TOKEN: &str = "auth_token";

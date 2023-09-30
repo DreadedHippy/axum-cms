@@ -1,72 +1,70 @@
-use std::env;
+use std::{env, error::Error};
 
 // use redis::{Client, RedisError, Connection, Commands};
-use redis::{aio::Connection, AsyncCommands, FromRedisValue};
+use redis::{aio::Connection, AsyncCommands, FromRedisValue, Commands, Client};
 use anyhow::Result;
-// use crate::models::error::{Result, Error};
 
-// pub async fn create_redis_client() -> Result<Connection>{
-// 	let redis_hostname = env::var("REDIS_HOSTNAME").expect("missing environment variable REDIS_HOSTNAME");
-// 	let redis_password = env::var("REDIS_PASSWORD").unwrap_or_default();
-
-// 	let redis_conn_url = format!("rediss://:{}@{}", redis_password, redis_hostname);
-
-// 	println!("Connecting to redis...");
-
-// 	let mut conn = redis::Client::open(redis_conn_url)
-// 		.expect("invalid connection URL")
-// 		.get_async_connection()
-// 		.await
-// 		.expect("failed to connect to redis");
-// 	// throw away the result, just make sure it does not fail
-// 	// let _: () = redis::cmd("SET")
-// 	// 	.arg("key_1")
-// 	// 	.arg("value_1")
-// 	// 	.execute(&mut conn);
-
-// 	let _: () = conn.set("key_1", "value_1").await?;
-
-// 	println!("Connected");
-
-// 	Ok(conn)
-// }
+use crate::models::{post::Post, author::Author};
 
 
 
 pub async fn create_redis_connection() -> Result<Connection>{
-	println!("Connecting to redis");
-	let redis_host_name = env::var("REDIS_HOSTNAME").expect("missing environment variable REDIS_HOSTNAME");
-	let redis_password = env::var("REDIS_PASSWORD").expect("missing environment variable REDIS_PASSWORD");
-	let redis_conn_url = format!("rediss://:{}@{}", redis_password, redis_host_name);
+	let client = Client::open("redis://127.0.0.1/")?;
+	let mut conn = client.get_tokio_connection().await?;
 
-	let  mut conn = redis::Client::open(redis_conn_url)
-			.expect("invalid connection URL")
-			.get_tokio_connection()
-			.await
-			.expect("failed to connect to redis");
-
-	
-	// let _: () = redis::cmd("SET")
-	// .arg("foo")
-	// .arg("bar")
-	// .query(&mut conn)
-	// .expect("failed to execute SET for 'foo'");
-
-	
-
-
-	
-	let bar: String = conn.get("foo").await?;
-
-	println!("value for 'foo' = {}", bar);
-
-
-
-	println!("Connected");
-
-	Ok(conn)
-
-	
+	Ok(conn)	
 }
+
+pub async fn  update_cached_posts(posts: &Vec<Post>) -> Result<()>{
+	let data = serde_json::to_string(posts).expect("Could not serialize posts");
+	let mut conn = create_redis_connection().await.expect("Could not create redis connection");
+	let _: () = conn.set("posts", data).await.expect("Could not update cached posts");
+
+	Ok(())
+}
+
+
+pub async fn  update_cached_authors(authors: &Vec<Author>) -> Result<()>{
+	let data = serde_json::to_string(&authors).expect("Could not serialize authors");
+	let mut conn = create_redis_connection().await.expect("Could not create redis connection");
+	let _: () = conn.set("authors", data).await.expect("Could not update cached authors");
+
+	Ok(())
+}
+
+pub async fn initialize_cache(authors: Vec<Author>, posts: Vec<Post>) -> Result<()> {
+	let posts_data = serde_json::to_string(&posts).expect("Could not serialize posts");
+	let authors_data = serde_json::to_string(&authors).expect("Could not serialize authors");
+
+	let mut conn = create_redis_connection().await.expect("Could not create redis connection");
+	
+	let _: () = conn.set("posts", posts_data).await.expect("Could not initialize posts cache");
+	let _: () = conn.set("authors", authors_data).await.expect("Could not initialize authors cache");
+
+	// region: Deserialization tests
+
+	// let authors_result: String = conn.get("authors").await?;
+	// let posts_result: String = conn.get("posts").await?;
+
+	// let authors: Vec<Author> = serde_json::from_str(&authors_result).unwrap();
+	// let posts: Vec<Post> = serde_json::from_str(&posts_result).unwrap();
+
+	// println!("THE AUTHORS");
+	// println!("{:#?}", authors);
+
+	// println!("THE POSTS");
+	// println!("{:#?}", posts);
+
+
+
+	// println!("->> THE END");
+
+	// endregion: Deserialization tests
+
+
+	Ok(())
+}
+
+
 
 

@@ -2,7 +2,7 @@ use sqlx::FromRow;
 use serde::{Deserialize, Serialize};
 
 
-#[derive(Serialize, Debug, FromRow)]
+#[derive(Deserialize, Serialize, Debug, FromRow)]
 pub struct Post {
 	pub id: i64,
 	pub title: String,

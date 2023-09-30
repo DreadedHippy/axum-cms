@@ -1,6 +1,6 @@
 use sqlx::{Pool, Postgres, Error, Row};
 
-use crate::models::author::{Author, AuthorForResult};
+use crate::{models::author::{Author, AuthorForResult}, utils::cache::{update_cached_posts, update_cached_authors}, handlers::auth};
 
 use super::{author::AuthorForCreate, post::{PostForCreate, Post}};
 
@@ -47,6 +47,10 @@ impl AppState {
 		let authors = records
 		.fetch_all(&self.pool)
 		.await?;
+
+	
+		update_cached_authors(&authors).await.expect("Failed to update cached authors");
+		println!("->> {:<12 } - Cached Authors updated", "CACHE");
 
 		Ok(authors)
 	}
@@ -109,7 +113,10 @@ impl AppState {
 			author_id: rec.get("author_id")
 		};
 
-		println!("{:#?}", result);
+		// println!("{:#?}", result);
+
+		// Update cache
+		let posts = self.get_all_posts().await?;
 
     Ok(result)		
 	}
@@ -124,6 +131,9 @@ impl AppState {
 		let posts = records
 		.fetch_all(&self.pool)
 		.await?;
+	
+		update_cached_posts(&posts).await.expect("Failed to update cached posts");
+		println!("->> {:<12 } - Cached Posts updated", "CACHE");
 
 		Ok(posts)
 	}

@@ -36,17 +36,17 @@ pub async fn handler_author_get_all(State(app_state): State<AppState>) -> Result
 	Ok(Json(response))
 }
 
-// pub async fn handler_author_get_specific(State(app_state): State<AppState>, Path(id): Path<i64>) -> Result<Json<CustomResponse<Author>>> {
+pub async fn handler_author_get_specific(State(app_state): State<AppState>, Path(id): Path<i64>) -> Result<Json<CustomResponse<Author>>> {
 
-// 	let pool = app_state.pool;
+	let pool = app_state.pool;
 
-// 	let author: Author = Author { id, name: format!("Resulting Author"), email: format!("result@mail.com"), password: format!("Password") };
+	let author: Author = Author { id, name: format!("Resulting Author"), email: format!("result@mail.com"), password: format!("Password") };
 
-// 	let response = CustomResponse::<Author>::new(
-// 		true,
-// 		Some(format!("Author Retrieved")),
-// 		Some(CustomResponseData::Item(author))
-// 	);
+	let response = CustomResponse::<Author>::new(
+		true,
+		Some(format!("Author Retrieved")),
+		Some(CustomResponseData::Item(author))
+	);
 
-// 	Ok(Json(response))
-// }
+	Ok(Json(response))
+}
