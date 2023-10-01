@@ -17,11 +17,13 @@ pub enum Error {
 	CouldNotCreateAuthor,
 	CouldNotGetAuthors,
 	CouldNotGetAuthor,
+	CouldNotEditAuthor,
 
 	// Post
 	CouldNotCreatePost,
 	CouldNotGetPosts,
 	CouldNotGetPost,
+	CouldNotEditPost,
 
 	// Server
 	InternalServerError,

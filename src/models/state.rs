@@ -53,9 +53,7 @@ impl AppState {
 		println!("->> {:<12 } - Cached Authors updated", "CACHE");
 
 		Ok(authors)
-	}
-
-	
+	}	
 
 	pub async fn get_specific_author(&self, id: i64) -> Result<Author, Error> {
 		let q = r#"
@@ -65,6 +63,28 @@ impl AppState {
 		let record = sqlx::query_as::<_, Author>(q);
 
 		let author = record
+		.bind(id)
+		.fetch_one(&self.pool)
+		.await?;
+
+		Ok(author)
+	}
+
+	pub async fn edit_author(&self, name: String, id: i64) -> Result<Author, Error> {
+		let q = r#"
+		UPDATE authors
+		SET name = COALESCE(
+			NULLIF($1, ''),
+			name
+		)
+		WHERE id = $2
+		RETURNING *
+		"#;
+
+		let record = sqlx::query_as::<_, Author>(q);
+
+		let author = record
+		.bind(name)
 		.bind(id)
 		.fetch_one(&self.pool)
 		.await?;
@@ -148,6 +168,33 @@ impl AppState {
 		let record = sqlx::query_as::<_, Post>(q);
 
 		let post = record
+		.bind(id)
+		.fetch_one(&self.pool)
+		.await?;
+
+		Ok(post)
+	}
+
+	pub async fn edit_post(&self, title: String, content: String, id: i64) -> Result<Post, Error> {
+		let q = r#"
+		UPDATE posts
+		SET title = COALESCE(
+			NULLIF($1, ''),
+			title
+		),
+		content = COALESCE(
+			NULLIF($2, ''),
+			content
+		)
+		WHERE id = $3
+		RETURNING *
+		"#;
+
+		let record = sqlx::query_as::<_, Post>(q);
+
+		let post = record
+		.bind(title)
+		.bind(content)
 		.bind(id)
 		.fetch_one(&self.pool)
 		.await?;

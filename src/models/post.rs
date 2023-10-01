@@ -17,6 +17,11 @@ pub struct PostForCreate {
 	pub author_id: i64
 }
 
+#[derive(Deserialize, Debug)]
+pub struct PostForEdit {
+	pub title: Option<String>,
+	pub content: Option<String>
+}
 #[derive(Debug, Deserialize)]
 pub struct PostParams {
 	pub author: Option<String> // The author's email

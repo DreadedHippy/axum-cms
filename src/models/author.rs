@@ -18,6 +18,11 @@ pub struct AuthorForCreate {
 	pub password: String
 }
 
+#[derive(Deserialize)]
+pub struct AuthorForEdit {
+	pub name: Option<String>,
+}
+
 #[derive(Serialize, Debug)]
 pub struct AuthorForResult {
 	pub name: String,

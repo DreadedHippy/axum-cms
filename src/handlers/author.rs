@@ -3,7 +3,7 @@ use std::fmt::format;
 use axum::Json;
 use axum::extract::{Path, State};
 
-use crate::models::author::{Author, AuthorForCreate, AuthorForResult};
+use crate::models::author::{Author, AuthorForCreate, AuthorForResult, AuthorForEdit};
 use crate::models::custom_response::{CustomResponse, CustomResponseData};
 use crate::models::error::{Result, Error};
 use crate::models::state::AppState;
@@ -46,6 +46,22 @@ pub async fn handler_author_get_specific(State(app_state): State<AppState>, Path
 		true,
 		Some(format!("Author Retrieved")),
 		Some(CustomResponseData::Item(author))
+	);
+
+	Ok(Json(response))
+}
+
+pub async fn handler_author_edit(State(app_state): State<AppState>, Path(id): Path<i64>, Json(author): Json<AuthorForEdit>) -> Result<Json<CustomResponse<Author>>> {
+	let name = author.name.unwrap_or_default();
+
+	let edited_author = app_state.edit_author(name, id).await.map_err(|e| {
+		Error::CouldNotEditAuthor
+	})?;
+
+	let response = CustomResponse::<Author>::new(
+		true,
+		Some(format!("Author Updated successfully")),
+		Some(CustomResponseData::Item(edited_author))
 	);
 
 	Ok(Json(response))

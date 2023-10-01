@@ -1,6 +1,6 @@
 use axum::{Json, extract::{Path, State, Query}};
 
-use crate::models::{error::{Result, Error}, custom_response::{CustomResponse, CustomResponseData}, post::{Post, PostForCreate, self, PostParams}, state::AppState};
+use crate::models::{error::{Result, Error}, custom_response::{CustomResponse, CustomResponseData}, post::{Post, PostForCreate, self, PostParams, PostForEdit}, state::AppState};
 
 pub async fn handler_post_create(State(app_state): State<AppState>, Json(post_info): Json<PostForCreate>) -> Result<Json<CustomResponse<Post>>>{
 	let result = app_state.create_post(post_info).await.map_err(|e| {
@@ -53,6 +53,25 @@ pub async fn handler_post_get_specific(State(app_state): State<AppState>,  Path(
 		true,
 		Some(format!("Post retrieved successfully")),
 		Some(CustomResponseData::Item(retrieved_post))
+	);
+
+	Ok(Json(response))
+}
+
+
+pub async fn handler_post_edit(State(app_state): State<AppState>,  Path(id): Path<i64>, Json(post): Json<PostForEdit>) -> Result<Json<CustomResponse<Post>>>{
+
+	let title = post.title.unwrap_or_default();
+	let content = post.content.unwrap_or_default();
+
+	let edited_post: Post = app_state.edit_post(title, content, id).await.map_err(|e| {
+		Error::CouldNotEditPost
+	})?;
+
+	let response  = CustomResponse::new(
+		true,
+		Some(format!("Post updated successfully")),
+		Some(CustomResponseData::Item(edited_post))
 	);
 
 	Ok(Json(response))
