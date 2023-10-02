@@ -66,3 +66,18 @@ pub async fn handler_author_edit(State(app_state): State<AppState>, Path(id): Pa
 
 	Ok(Json(response))
 }
+
+pub async fn handler_author_delete(State(app_state): State<AppState>, Path(id): Path<i64>) -> Result<Json<CustomResponse<Author>>> {
+	// Delete the author, we don't care about the result, it only should throw no error
+	let _ = app_state.delete_author(id).await.map_err(|e| {
+		Error::CouldNotDeleteAuthor
+	})?;
+
+	let response = CustomResponse::<Author>::new(
+		true,
+		Some(format!("Author deleted successfully")),
+		None
+	);
+
+	Ok(Json(response))
+}

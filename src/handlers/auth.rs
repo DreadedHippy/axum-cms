@@ -6,13 +6,23 @@ use crate::{models::{auth::LoginPayload, custom_response::{CustomResponse, Custo
 
 pub async fn handler_login(cookies: Cookies,  State(app_state): State<AppState>, Json(payload):  Json<LoginPayload>) -> Result<Json<CustomResponse<String>>>{
 	println!("->> {:<12} - api_login", "HANDLER");
+
+	// Check for author in DB
 	let author_from_db = app_state.get_author_by_email(payload.email).await.map_err(|_| Error::InternalServerError)?;
 
+
+	// Confirm password match
 	if let Ok(false) = verify_hash(payload.password, &author_from_db.password) {
 		return Err(Error::LoginFail)
 	}
+	
+	// Create jwt
+	let jwt = create_jwt(author_from_db.email.clone())?;
 
-	cookies.add(Cookie::new(AUTH_TOKEN, "user-1.exp.sign"));
+	// Set auth header cookie
+	cookies.add(Cookie::new(AUTHORIZATION_HEADER, format!("Bearer {}", jwt)));
+
+	// Return successful message
 	let response = CustomResponse::<String>::new(
 		true,
 		Some(format!("Logged in Successfully")),
@@ -32,11 +42,16 @@ pub async fn handler_signup(cookies: Cookies, State(app_state): State<AppState>,
 		password
 	};
 
+	//  Create new author
 	let author = app_state.create_author(secure_author_info).await.map_err(|e| Error::CouldNotCreateAuthor)?;
+
+	// Create JWT
 	let jwt = create_jwt(author.email.clone())?;
 
+	// Set auth header cookie
 	cookies.add(Cookie::new(AUTHORIZATION_HEADER, format!("Bearer {}", jwt)));
 
+	// Send successful sign up message
 	let response = CustomResponse::<AuthorForResult>::new(
 		true,
 		Some(format!("Signed up successfully")),

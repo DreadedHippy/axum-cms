@@ -31,12 +31,11 @@ async fn main() -> Result<()>{
     // Get Redis Client;
     let connection = create_redis_connection().await.unwrap();
 
-    // Get information to initialize the cache
+    // Get information and initialize the cache
     let initial_authors = app_state.get_all_authors().await?;
     let initial_posts = app_state.get_all_posts().await?;
 
-    // Initialize the cache
-    initialize_cache(initial_authors, initial_posts).await?;
+    initialize_cache(initial_authors, initial_posts);
 
     let all_routes = all_routes(app_state)
         .layer(middleware::map_response(main_response_mapper))

@@ -1,4 +1,4 @@
-use axum::{response::IntoResponse, http::StatusCode};
+use axum::{response::IntoResponse, http::StatusCode, extract::rejection::JsonRejection};
 
 pub type Result<T> = core::result::Result<T, Error>;
 
@@ -18,12 +18,14 @@ pub enum Error {
 	CouldNotGetAuthors,
 	CouldNotGetAuthor,
 	CouldNotEditAuthor,
+	CouldNotDeleteAuthor,
 
 	// Post
 	CouldNotCreatePost,
 	CouldNotGetPosts,
 	CouldNotGetPost,
 	CouldNotEditPost,
+	CouldNotDeletePost,
 
 	// Server
 	InternalServerError,
@@ -45,6 +47,9 @@ impl IntoResponse for Error {
 			Error::AuthFailNoAuthTokenCookie => (StatusCode::UNAUTHORIZED, "AUTH_FAILED_NO_AUTH_TOKEN_COOKIE").into_response(),
 			Error::InvalidJwt => (StatusCode::UNAUTHORIZED, "INVALID_JWT").into_response(),
 
+			// Not found
+			Error::CouldNotGetPost => (StatusCode::NOT_FOUND, "POST_NOT_FOUND").into_response(),
+			Error::CouldNotGetAuthor => (StatusCode::NOT_FOUND, "AUTHOR_NOT_FOUND").into_response(),
 
 			Error::LoginFail => (StatusCode::BAD_REQUEST, "LOGIN_FAILED_INVALID_CREDENTIALS").into_response(),
 			Error::InternalServerError => (StatusCode::INTERNAL_SERVER_ERROR, "UNHANDLED_CLIENT_ERROR").into_response(),

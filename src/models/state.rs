@@ -49,8 +49,6 @@ impl AppState {
 		.await?;
 
 	
-		update_cached_authors(&authors).await.expect("Failed to update cached authors");
-		println!("->> {:<12 } - Cached Authors updated", "CACHE");
 
 		Ok(authors)
 	}	
@@ -89,7 +87,30 @@ impl AppState {
 		.fetch_one(&self.pool)
 		.await?;
 
+		// Update cache
+		self.update_authors_cache().await;
+
 		Ok(author)
+	}
+
+	pub async fn delete_author(&self, id: i64) -> Result<bool, Error> {
+		let q = r#"
+		DELETE FROM authors
+		WHERE id = $1
+		"#;
+
+		let record = sqlx::query(q);
+
+		let post = record
+		.bind(id)
+		.execute(&self.pool)
+		.await?;
+
+	
+		// Update cache
+		self.update_authors_cache().await;
+
+		return Ok(true);
 	}
 
 	pub async fn get_author_by_email(&self, email: String) -> Result<Author, Error> {
@@ -152,13 +173,8 @@ impl AppState {
 		.fetch_all(&self.pool)
 		.await?;
 	
-		update_cached_posts(&posts).await.expect("Failed to update cached posts");
-		println!("->> {:<12 } - Cached Posts updated", "CACHE");
-
 		Ok(posts)
 	}
-
-	
 
 	pub async fn get_specific_post(&self, id: i64) -> Result<Post, Error> {
 		let q = r#"
@@ -199,7 +215,32 @@ impl AppState {
 		.fetch_one(&self.pool)
 		.await?;
 
-		Ok(post)
+	
+		// Update cache using "GET ALL functionality"		
+		self.update_posts_cache().await;
+
+		return Ok(post);
+	}
+
+	
+	pub async fn delete_post(&self, id: i64) -> Result<bool, Error> {
+		let q = r#"
+		DELETE FROM posts
+		WHERE id = $1
+		"#;
+
+		let record = sqlx::query(q);
+
+		let post = record
+		.bind(id)
+		.execute(&self.pool)
+		.await?;
+
+	
+		// Update cache using "GET ALL functionality"		
+		self.update_posts_cache().await;
+
+		return Ok(true);
 	}
 
 	pub async fn get_posts_by_author(&self, email: String) -> Result<Vec<Post>, Error> {
@@ -225,4 +266,32 @@ impl AppState {
 	}
 
 	// endregion: --Database Manipulations for posts
+}
+
+
+impl AppState {
+	// #[tokio::main]
+	pub async fn update_authors_cache(&self) {
+		if let Ok(authors) = self.get_all_authors().await {
+
+			update_cached_authors(&authors).await.expect("Failed to update cached authors");
+			println!("->> {:<12 } - Cached Authors updated", "CACHE");
+
+		} else {
+			println!("{:<12} Cache update failed", "AUTHORS")
+		}
+	}
+
+	
+	// #[tokio::main]
+	pub async fn update_posts_cache(&self) {
+		if let Ok(posts) = self.get_all_posts().await {
+
+			update_cached_posts(&posts).await.expect("Failed to update cached posts");
+			println!("->> {:<12 } - Cached Posts updated", "CACHE");
+
+		} else {
+			println!("{:<12} Cache update failed", "POSTS")
+		}
+	}
 }

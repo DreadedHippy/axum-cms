@@ -78,6 +78,22 @@ pub async fn handler_post_edit(State(app_state): State<AppState>,  Path(id): Pat
 }
 
 
+pub async fn handler_post_delete(State(app_state): State<AppState>,  Path(id): Path<i64>) -> Result<Json<CustomResponse<Post>>>{
+	// Delete the post, we don't care about the result, it only should throw no error
+	let _ = app_state.delete_post(id).await.map_err(|e| {
+		Error::CouldNotDeletePost
+	})?;
+
+	let response  = CustomResponse::new(
+		true,
+		Some(format!("Post deleted successfully")),
+		None
+	);
+
+	Ok(Json(response))
+}
+
+
 // pub async fn handler_get_posts_by_author(Query(params): Query<PostParams>, State(app_state): State<AppState>) -> Result<Json<CustomResponse<Post>>>{
 // 	match params.author {
 // 		Some(email) => {
