@@ -1,4 +1,5 @@
 use sqlx::{Pool, Postgres, Error, Row};
+use tracing::debug;
 
 use crate::{models::author::{Author, AuthorForResult}, utils::cache::{update_cached_posts, update_cached_authors}, handlers::auth};
 
@@ -31,7 +32,7 @@ impl AppState {
 			email: rec.get("email")
 		};
 
-		println!("{:#?}", result);
+		// println!("{:#?}", result);
 
     Ok(result)
 		
@@ -244,7 +245,7 @@ impl AppState {
 	}
 
 	pub async fn get_posts_by_author(&self, email: String) -> Result<Vec<Post>, Error> {
-		println!("{}", email);
+		// println!("{}", email);
 		let q = r#"
 		SELECT *
 		FROM posts p
@@ -275,10 +276,10 @@ impl AppState {
 		if let Ok(authors) = self.get_all_authors().await {
 
 			update_cached_authors(&authors).await.expect("Failed to update cached authors");
-			println!("->> {:<12 } - Cached Authors updated", "CACHE");
+			debug!(" {:<12 } - Cached Authors updated", "CACHE");
 
 		} else {
-			println!("{:<12} Cache update failed", "AUTHORS")
+			debug!("{:<12} Cache update failed", "AUTHORS")
 		}
 	}
 
@@ -288,10 +289,10 @@ impl AppState {
 		if let Ok(posts) = self.get_all_posts().await {
 
 			update_cached_posts(&posts).await.expect("Failed to update cached posts");
-			println!("->> {:<12 } - Cached Posts updated", "CACHE");
+			debug!(" {:<12 } - Cached Posts updated", "CACHE");
 
 		} else {
-			println!("{:<12} Cache update failed", "POSTS")
+			debug!("{:<12} Cache update failed", "POSTS")
 		}
 	}
 }

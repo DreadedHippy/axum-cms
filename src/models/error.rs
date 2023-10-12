@@ -1,4 +1,5 @@
 use axum::{response::IntoResponse, http::StatusCode, extract::rejection::JsonRejection};
+use tracing::debug;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
@@ -34,12 +35,15 @@ pub enum Error {
 	CouldNotConnectToRedis,
 	// CouldNotFetchPosts,
 
+	// -- Config
+	ConfigMissingEnv(&'static str)
+
 	// -- 
 }
 
 impl IntoResponse for Error {
 	fn into_response(self) -> axum::response::Response {
-		println!("->> {:<12} - {self:?}", "INTO_RES");
+		debug!(" {:<12} - {self:?}", "INTO_RES");
 
 		match self {
 			// Unauthenticated

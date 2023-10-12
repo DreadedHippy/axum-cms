@@ -2,6 +2,7 @@ use axum::{Json, extract::State};
 use axum_extra::extract::WithRejection;
 use chrono::format::format;
 use tower_cookies::{Cookies, Cookie};
+use tracing::debug;
 
 use crate::{models::{auth::LoginPayload, custom_response::{CustomResponse, CustomResponseData}, error::{Error, Result}, state::AppState, author::{AuthorForCreate, Author, AuthorForResult}}, middlewares::{AUTH_TOKEN, AUTHORIZATION_HEADER}, utils::{auth::{create_jwt, hash_password, verify_hash}, custom_extractor::ApiError}};
 
@@ -10,7 +11,7 @@ pub async fn handler_login(
 	State(app_state): State<AppState>,
 	WithRejection((Json(payload)), _): WithRejection<Json<LoginPayload>, ApiError>,
 	) -> Result<Json<CustomResponse<String>>>{
-	println!("->> {:<12} - api_login", "HANDLER");
+	debug!(" {:<12} - api_login", "HANDLER");
 
 	// Check for author in DB
 	let author_from_db = app_state.get_author_by_email(payload.email).await.map_err(|_| Error::InternalServerError)?;
@@ -43,7 +44,7 @@ pub async fn handler_signup(
 	WithRejection((Json(author_info)), _): WithRejection<Json<AuthorForCreate>, ApiError>
 ) -> Result<Json<CustomResponse<AuthorForResult>>> {
 	let password = hash_password(author_info.password.clone())?;
-	println!("->> {:<12} - api_signup", "HANDLER");
+	debug!(" {:<12} - api_signup", "HANDLER");
 
 	let secure_author_info: AuthorForCreate  = AuthorForCreate {
 		name: author_info.name,

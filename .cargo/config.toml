@@ -1,0 +1,18 @@
+# Cargo config file
+# See: https://doc.rust-lang.org/cargo/reference/config.html
+
+# Environment variables set for all `cargo ...` commands.
+[env]
+
+# Scope down tracing, to filter out external lib tracing.
+RUST_LOG="axum_cms=debug"
+
+# -- Service Environment Variables
+# IMPORTANT:
+#   For cargo commands only.
+#   For deployed env, should be managed by container (e.g., Kubernetes)
+#   (e.g., Kubernetes).
+
+## -- ConfigMap
+
+SERVICE_WEB_FOLDER="web-folder/"

@@ -12,7 +12,7 @@ use crate::utils::auth::create_jwt;
 use crate::utils::custom_extractor::ApiError;
 
 // pub async fn handler_author_create(State(app_state): State<AppState>, Json(author_info): Json<AuthorForCreate>) -> Result<Json<CustomResponse<AuthorForResult>>> {
-// 	println!("->> {:<12} - handler_author_create", "HANDLER");
+// 	debug!(" {:<12} - handler_author_create", "HANDLER");
 // 	let author = app_state.create_author(author_info).await.map_err(|e| Error::CouldNotCreateAuthor)?;
 // 	let jwt = create_jwt(author.email.clone())?;
 

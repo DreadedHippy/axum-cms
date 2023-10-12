@@ -33,6 +33,7 @@ pub async fn  update_cached_authors(authors: &Vec<Author>) -> Result<()>{
 }
 
 pub async fn initialize_cache(authors: Vec<Author>, posts: Vec<Post>) -> Result<()> {
+	//TODO: Use different cache url depending on dev mode or prod mode
 	let posts_data = serde_json::to_string(&posts).expect("Could not serialize posts");
 	let authors_data = serde_json::to_string(&authors).expect("Could not serialize authors");
 
@@ -57,7 +58,7 @@ pub async fn initialize_cache(authors: Vec<Author>, posts: Vec<Post>) -> Result<
 
 
 
-	// println!("->> THE END");
+	// debug!(" THE END");
 
 	// endregion: Deserialization tests
 

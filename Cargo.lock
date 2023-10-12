@@ -3,31 +3,6 @@
 version = 3
 
 [[package]]
-name = "actix-cms"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "axum-extra",
- "bcrypt",
- "chrono",
- "dotenv",
- "jsonwebtoken",
- "once_cell",
- "redis",
- "serde",
- "serde_json",
- "serde_with",
- "sqlx",
- "thiserror",
- "tokio",
- "tower-cookies",
- "tower-http",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "addr2line"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -147,6 +122,31 @@ dependencies = [
  "tower",
  "tower-layer",
  "tower-service",
+]
+
+[[package]]
+name = "axum-cms"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "axum-extra",
+ "bcrypt",
+ "chrono",
+ "dotenv",
+ "jsonwebtoken",
+ "once_cell",
+ "redis",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tower-cookies",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

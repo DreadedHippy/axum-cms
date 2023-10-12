@@ -1,6 +1,5 @@
-#![allow(unused)]
+#![allow(unused)] // For early development
 use std::{net::SocketAddr, thread};
-
 use anyhow::Result;
 use axum::{Server, middleware};
 use dotenv::dotenv;
@@ -8,17 +7,34 @@ use models::state::AppState;
 use routes::all_routes;
 use sqlx::{Pool, Postgres};
 use tower_cookies::CookieManagerLayer;
+use tracing::info;
+use tracing_subscriber::EnvFilter;
 use utils::{main_response_mapper, connect_to_postgres, cache::{create_redis_connection, initialize_cache}};
 
+mod config;
 mod routes;
 mod handlers;
 mod utils;
 mod models;
 mod middlewares;
 
+pub mod _dev_utils;
+
+pub use config::config;
+
 #[tokio::main]
-async fn main() -> Result<()>{    
+async fn main() -> Result<()>{
     dotenv().ok();
+
+    tracing_subscriber::fmt()
+        .without_time() // For early local development
+        .with_target(false)
+        .with_env_filter(EnvFilter::from_default_env())
+        .init();
+
+    // -- FOR DEV ONLY
+    _dev_utils::init_dev().await;
+    
     // Declare host and port number
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
 
@@ -42,7 +58,7 @@ async fn main() -> Result<()>{
 		.layer(CookieManagerLayer::new());
 
     
-    println!("Axum server listening on port 3000");
+    info!("{:<12} - {addr}\n", "LISTENING");
 
     // Start the server
     Server::bind(&addr)

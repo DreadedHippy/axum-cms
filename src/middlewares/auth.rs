@@ -1,5 +1,6 @@
 use axum::{http::Request, middleware::Next, response::Response};
 use tower_cookies::Cookies;
+use tracing::debug;
 use crate::{models::error::{Result, Error}, utils::auth::is_jwt_valid, middlewares::AUTHORIZATION_HEADER};
 
 use super::AUTH_TOKEN;
@@ -9,7 +10,7 @@ pub async fn mw_require_auth<B>(
 	req: Request<B>,
 	next: Next<B>
 ) -> Result<Response> {
-	println!("->> {:<12} - mw_require_auth", "MIDDLEWARE");
+	debug!(" {:<12} - mw_require_auth", "MIDDLEWARE");
 	let auth_cookie = cookies.get(AUTHORIZATION_HEADER).map(|c| c.value().to_string());
 
 	// TODO: Real auth-token parsing & validation.

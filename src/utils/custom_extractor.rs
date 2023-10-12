@@ -1,6 +1,7 @@
 use axum::{extract::rejection::JsonRejection, response::IntoResponse, Json};
 use serde_json::json;
 use thiserror::Error;
+use tracing::debug;
 
 #[derive(Debug, Error)]
 
@@ -27,6 +28,7 @@ impl IntoResponse for ApiError {
 			"origin": "with_rejection"
 		});
 
+		debug!(" {:<12} - json_rejection", "EXTRACTOR");
 		// Send this JSON as the error response
 		(status, Json(payload)).into_response()
 	}
