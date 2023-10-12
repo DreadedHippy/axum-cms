@@ -1,8 +1,12 @@
 use axum::{Json, extract::{Path, State, Query}};
+use axum_extra::extract::WithRejection;
 
-use crate::models::{error::{Result, Error}, custom_response::{CustomResponse, CustomResponseData}, post::{Post, PostForCreate, self, PostParams, PostForEdit}, state::AppState};
+use crate::{models::{error::{Result, Error}, custom_response::{CustomResponse, CustomResponseData}, post::{Post, PostForCreate, self, PostParams, PostForEdit}, state::AppState}, utils::custom_extractor::ApiError};
 
-pub async fn handler_post_create(State(app_state): State<AppState>, Json(post_info): Json<PostForCreate>) -> Result<Json<CustomResponse<Post>>>{
+pub async fn handler_post_create(
+	State(app_state): State<AppState>,
+	WithRejection((Json(post_info)), _): WithRejection<Json<PostForCreate>, ApiError>,
+	) -> Result<Json<CustomResponse<Post>>>{
 	let result = app_state.create_post(post_info).await.map_err(|e| {
 		Error::CouldNotCreatePost
 	})?;
@@ -59,7 +63,11 @@ pub async fn handler_post_get_specific(State(app_state): State<AppState>,  Path(
 }
 
 
-pub async fn handler_post_edit(State(app_state): State<AppState>,  Path(id): Path<i64>, Json(post): Json<PostForEdit>) -> Result<Json<CustomResponse<Post>>>{
+pub async fn handler_post_edit(
+	State(app_state): State<AppState>,
+	Path(id): Path<i64>,
+	WithRejection((Json(post)), _): WithRejection<Json<PostForEdit>, ApiError>
+	) -> Result<Json<CustomResponse<Post>>>{
 
 	let title = post.title.unwrap_or_default();
 	let content = post.content.unwrap_or_default();

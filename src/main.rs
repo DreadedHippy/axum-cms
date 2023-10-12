@@ -41,13 +41,15 @@ async fn main() -> Result<()>{
         .layer(middleware::map_response(main_response_mapper))
 		.layer(CookieManagerLayer::new());
 
+    
+    println!("Axum server listening on port 3000");
+
     // Start the server
     Server::bind(&addr)
         .serve(all_routes.into_make_service())
         .await
         .unwrap();
 
-    println!("Axum server listening on port 3000");
 
     Ok(())
 }

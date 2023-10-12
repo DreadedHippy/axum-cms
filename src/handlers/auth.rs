@@ -1,10 +1,15 @@
 use axum::{Json, extract::State};
+use axum_extra::extract::WithRejection;
 use chrono::format::format;
 use tower_cookies::{Cookies, Cookie};
 
-use crate::{models::{auth::LoginPayload, custom_response::{CustomResponse, CustomResponseData}, error::{Error, Result}, state::AppState, author::{AuthorForCreate, Author, AuthorForResult}}, middlewares::{AUTH_TOKEN, AUTHORIZATION_HEADER}, utils::auth::{create_jwt, hash_password, verify_hash}};
+use crate::{models::{auth::LoginPayload, custom_response::{CustomResponse, CustomResponseData}, error::{Error, Result}, state::AppState, author::{AuthorForCreate, Author, AuthorForResult}}, middlewares::{AUTH_TOKEN, AUTHORIZATION_HEADER}, utils::{auth::{create_jwt, hash_password, verify_hash}, custom_extractor::ApiError}};
 
-pub async fn handler_login(cookies: Cookies,  State(app_state): State<AppState>, Json(payload):  Json<LoginPayload>) -> Result<Json<CustomResponse<String>>>{
+pub async fn handler_login(
+	cookies: Cookies,
+	State(app_state): State<AppState>,
+	WithRejection((Json(payload)), _): WithRejection<Json<LoginPayload>, ApiError>,
+	) -> Result<Json<CustomResponse<String>>>{
 	println!("->> {:<12} - api_login", "HANDLER");
 
 	// Check for author in DB
@@ -32,7 +37,11 @@ pub async fn handler_login(cookies: Cookies,  State(app_state): State<AppState>,
 	Ok(Json(response))
 }
 
-pub async fn handler_signup(cookies: Cookies, State(app_state): State<AppState>, Json(author_info): Json<AuthorForCreate>) -> Result<Json<CustomResponse<AuthorForResult>>> {
+pub async fn handler_signup(
+	cookies: Cookies,
+	State(app_state): State<AppState>,
+	WithRejection((Json(author_info)), _): WithRejection<Json<AuthorForCreate>, ApiError>
+) -> Result<Json<CustomResponse<AuthorForResult>>> {
 	let password = hash_password(author_info.password.clone())?;
 	println!("->> {:<12} - api_signup", "HANDLER");
 
