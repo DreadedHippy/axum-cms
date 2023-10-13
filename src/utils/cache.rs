@@ -3,16 +3,30 @@ use std::{env, error::Error};
 // use redis::{Client, RedisError, Connection, Commands};
 use redis::{aio::Connection, AsyncCommands, FromRedisValue, Commands, Client};
 use anyhow::Result;
+use tracing::info;
 
 use crate::models::{post::Post, author::Author};
 
 
 
 pub async fn create_redis_connection() -> Result<Connection>{
-	let client = Client::open("redis://127.0.0.1/")?;
+	let (redis_conn_url) = match env::var("MODE") {
+		Ok(mode) => {
+				if mode == String::from("production") {
+						env::var("PROD_REDIS_CONN_URL").unwrap()
+				} else {
+						env::var("DEV_REDIS_CONN_URL").unwrap()
+				}
+		},
+		_ => {
+			env::var("DEV_REDIS_CONN_URL").unwrap()
+		}
+	};
+
+	let client = Client::open(redis_conn_url)?;
 	let mut conn = client.get_tokio_connection().await?;
 
-	Ok(conn)	
+	Ok(conn)
 }
 
 pub async fn  update_cached_posts(posts: &Vec<Post>) -> Result<()>{
@@ -41,6 +55,8 @@ pub async fn initialize_cache(authors: Vec<Author>, posts: Vec<Post>) -> Result<
 	
 	let _: () = conn.set("posts", posts_data).await.expect("Could not initialize posts cache");
 	let _: () = conn.set("authors", authors_data).await.expect("Could not initialize authors cache");
+
+	info!("INITIALIZED CACHE SUCCESSFULLY");
 
 	// region: Deserialization tests
 

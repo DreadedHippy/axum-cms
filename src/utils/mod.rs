@@ -22,9 +22,9 @@ pub async fn main_response_mapper(res:Response) -> Response {
 	res
 }
 
-pub async fn connect_to_postgres() -> Result<Pool<Postgres>> {
-	let pool = PgPool::connect(&env::var("DATABASE_URL")?).await?;
+pub async fn connect_to_postgres(database_url: String) -> Result<Pool<Postgres>> {
+	let pool = PgPool::connect(&database_url).await?;
 
-	// Return a Potgres database pool
+	// Return a Postgres database pool
 	Ok(pool)
 }

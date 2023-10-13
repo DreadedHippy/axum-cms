@@ -13,13 +13,6 @@ pub fn all_routes(app_state: AppState) -> Router {
 
 }
 
-
-// fn routes_hello() -> Router{
-// 	Router::new()
-// 		.route("/hello", get(handler_hello))
-// 		.route("/hello2/:name", get(handler_hello_2))
-// }
-
 // Handling of authors
 fn routes_author(app_state: AppState) -> Router {
 	Router::new()
@@ -35,7 +28,7 @@ fn routes_author(app_state: AppState) -> Router {
 		.with_state(app_state)
 }
 
-// Haandling of posts
+// Handling of posts
 fn routes_post(app_state: AppState) -> Router {
 	Router::new()
 		.route(

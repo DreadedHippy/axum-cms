@@ -1,5 +1,5 @@
 #![allow(unused)] // For early development
-use std::{net::SocketAddr, thread};
+use std::{net::SocketAddr, thread, env};
 use anyhow::Result;
 use axum::{Server, middleware};
 use dotenv::dotenv;
@@ -33,25 +33,41 @@ async fn main() -> Result<()>{
         .init();
 
     // -- FOR DEV ONLY
-    _dev_utils::init_dev().await;
+
+    let (database_url) = match env::var("MODE") {
+        Ok(mode) => {
+            if mode == String::from("production") {
+                tracing::warn!("PRODUCTION MODE");
+                env::var("PROD_DATABASE_URL").unwrap()
+            } else {
+                _dev_utils::init_dev().await;
+                env::var("DEV_DATABASE_URL").unwrap()
+            }
+        },
+        _ => {
+            _dev_utils::init_dev().await;
+            env::var("DEV_DATABASE_URL").unwrap()
+        }
+    };
     
     // Declare host and port number
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
 
     // Get Postgresql connection pool
-    let pool = connect_to_postgres().await?;
+    let pool = connect_to_postgres(database_url).await?;
 
     // Initialize App State with connection pool
     let app_state: AppState = AppState { pool };
 
     // Get Redis Client;
     let connection = create_redis_connection().await.unwrap();
+	info!("CONNECTED TO REDIS");
 
     // Get information and initialize the cache
     let initial_authors = app_state.get_all_authors().await?;
     let initial_posts = app_state.get_all_posts().await?;
 
-    initialize_cache(initial_authors, initial_posts);
+    initialize_cache(initial_authors, initial_posts).await;
 
     let all_routes = all_routes(app_state)
         .layer(middleware::map_response(main_response_mapper))
