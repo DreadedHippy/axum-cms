@@ -1,5 +1,5 @@
 # axum-cms
-A simple production-ready backend server template for building the backend servers of Content Management Systems with Rust and Axum.
+A simple production-ready backend server template for Content Management Systems build with Rust and Axum.
 
 ## Features
 - Authors (Authors of posts)
