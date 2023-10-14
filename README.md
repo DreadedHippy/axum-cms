@@ -10,6 +10,16 @@ A simple production-ready backend server template for Content Management Systems
 - Cache used: Redis
 
 ## Routes
+- POST `/signup`: Sign up with name, email, and password
+- POST `/login`: Login with email and password
+- GET `/author`: get all authors
+- GET `/author/:id`: Get specific author.
+- PATCH `/author/:id`: Edit specific author.
+
+- GET `/post`: Get all posts
+- GET `/post/:id`: Get specific post
+- PATCH `/post/:id`: Edit specific post
+- DELETE `/post/:id`: Delete specific post
 
 ## Instructions
 1. Create a .env file in your local copy of the repository, and set the following env variables
