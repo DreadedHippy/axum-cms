@@ -1,5 +1,4 @@
 # axum-cms
-
 A simple production-ready backend server template for building the backend servers of Content Management Systems with Rust and Axum.
 
 ## Features
@@ -8,7 +7,9 @@ A simple production-ready backend server template for building the backend serve
 
 ## Information
 - Database used: Postgres
-- Cache: Redis
+- Cache used: Redis
+
+## Routes
 
 ## Instructions
 Create a .env file in your local copy of the repository, and set the following env variables
@@ -21,3 +22,4 @@ Create a .env file in your local copy of the repository, and set the following e
 
 ## Notes
 - Use the "WithRejection\<`CUSTOM_JSON_BODY`, ApiError>" in order to enable JSON extraction errors
+- All errors can be found in `src/models/error.rs` in the `Error` enum, you may write custom responses for each error inside the `impl IntoResponse` block for the `Error` enum

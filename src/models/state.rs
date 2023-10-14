@@ -1,8 +1,6 @@
 use sqlx::{Pool, Postgres, Error, Row};
 use tracing::debug;
-
 use crate::{models::author::{Author, AuthorForResult}, utils::cache::{update_cached_posts, update_cached_authors}, handlers::auth};
-
 use super::{author::AuthorForCreate, post::{PostForCreate, Post}};
 
 #[derive(Clone)]
@@ -12,7 +10,6 @@ pub struct AppState {
 
 impl AppState {
 	// region: --Database Manipulations for authors
-	
 	pub async fn create_author(&self, author_info: AuthorForCreate) -> Result<AuthorForResult, Error>{
 		let q = r#"
 		INSERT INTO authors (name, email, password)

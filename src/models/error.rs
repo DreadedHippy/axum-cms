@@ -1,4 +1,5 @@
-use axum::{response::IntoResponse, http::StatusCode, extract::rejection::JsonRejection};
+use axum::{response::IntoResponse, http::StatusCode, extract::rejection::JsonRejection, Json};
+use serde_json::{json, Value};
 use tracing::debug;
 
 pub type Result<T> = core::result::Result<T, Error>;
@@ -46,18 +47,73 @@ impl IntoResponse for Error {
 		debug!(" {:<12} - {self:?}", "INTO_RES");
 
 		match self {
-			// Unauthenticated
-			Error::AuthFailCookieExpired => (StatusCode::UNAUTHORIZED, "AUTH_FAILED_COOKIE_EXPIRED").into_response(),
-			Error::AuthFailNoAuthTokenCookie => (StatusCode::UNAUTHORIZED, "AUTH_FAILED_NO_AUTH_TOKEN_COOKIE").into_response(),
-			Error::InvalidJwt => (StatusCode::UNAUTHORIZED, "INVALID_JWT").into_response(),
+			// region: -- Unauthenticated
+			Error::AuthFailCookieExpired => {
+				let payload = json!({
+					"status": false,
+					"message": "Auth token expired"
+				});
+				(StatusCode::UNAUTHORIZED, Json(payload)).into_response()
+			},
 
-			// Not found
-			Error::CouldNotGetPost => (StatusCode::NOT_FOUND, "POST_NOT_FOUND").into_response(),
-			Error::CouldNotGetAuthor => (StatusCode::NOT_FOUND, "AUTHOR_NOT_FOUND").into_response(),
+			Error::AuthFailNoAuthTokenCookie => {
+				let payload = json!({
+					"status": false,
+					"message": "No auth token"
+				});
+				(StatusCode::UNAUTHORIZED, Json(payload)).into_response()
+			},
 
-			Error::LoginFail => (StatusCode::BAD_REQUEST, "LOGIN_FAILED_INVALID_CREDENTIALS").into_response(),
-			Error::InternalServerError => (StatusCode::INTERNAL_SERVER_ERROR, "UNHANDLED_CLIENT_ERROR").into_response(),
-			_ => (StatusCode::INTERNAL_SERVER_ERROR, "UNHANDLED_CLIENT_ERROR").into_response()
+			Error::InvalidJwt => {
+				let payload = json!({
+					"status": false,
+					"message": "Invalid JWT"
+				});
+				(StatusCode::UNAUTHORIZED, Json(payload)).into_response()
+			},
+			// endregion: -- Unauthenticated
+
+			// region: -- Not found
+			Error::CouldNotGetPost => {
+				let payload = json!({
+					"status": false,
+					"message": "Post not found"
+				});
+				(StatusCode::NOT_FOUND, Json(payload)).into_response()
+			},
+
+			Error::CouldNotGetAuthor => {
+				let payload = json!({
+					"status": false,
+					"message": "Author not found"
+				});
+
+				(StatusCode::NOT_FOUND, Json(payload)).into_response()
+			},
+			// endregion: -- Not found
+
+			Error::LoginFail => {
+				let payload = json!({
+					"status": false,
+					"message": "Login failed, Invalid credentials"
+				});
+				(StatusCode::BAD_REQUEST,  Json(payload)).into_response()
+			},
+
+			Error::InternalServerError => {
+				let payload = json!({
+					"status": false,
+					"message": "An error occurred on the server"
+				});
+				(StatusCode::INTERNAL_SERVER_ERROR, Json(payload)).into_response()
+			},
+			_ => {
+				let payload = json!({
+					"status": false,
+					"message": "An error occurred on the server"
+				});
+				(StatusCode::INTERNAL_SERVER_ERROR, Json(payload)).into_response()
+			}
 		}
 	}
 }
