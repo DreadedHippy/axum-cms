@@ -1,0 +1,13 @@
+# Ignore target directory
+target/
+
+# Ignore any compiled binaries
+**/target/release/**
+**/target/debug/**
+
+# Ignore any editor-specific files
+**/.vscode/
+**/.idea/
+
+# Ignore any hidden files
+**/.*

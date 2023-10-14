@@ -13,13 +13,13 @@ pub async fn create_redis_connection() -> Result<Connection>{
 	let (redis_conn_url) = match env::var("MODE") {
 		Ok(mode) => {
 				if mode == String::from("production") {
-						env::var("PROD_REDIS_CONN_URL").unwrap()
+						env::var("PROD_REDIS_CONN_URL").expect("Env variable `PROD_REDIS_CONN_URL` not found")
 				} else {
-						env::var("DEV_REDIS_CONN_URL").unwrap()
+						env::var("DEV_REDIS_CONN_URL").expect("Env variable `DEV_REDIS_CONN_URL` not found")
 				}
 		},
 		_ => {
-			env::var("DEV_REDIS_CONN_URL").unwrap()
+			env::var("DEV_REDIS_CONN_URL").expect("Env variable `DEV_REDIS_CONN_URL` not found")
 		}
 	};
 

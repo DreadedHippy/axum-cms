@@ -38,15 +38,15 @@ async fn main() -> Result<()>{
         Ok(mode) => {
             if mode == String::from("production") {
                 tracing::warn!("PRODUCTION MODE");
-                env::var("PROD_DATABASE_URL").unwrap()
+                env::var("PROD_DATABASE_URL").expect("Env variable `PROD_DATABASE_URL` not found")
             } else {
                 _dev_utils::init_dev().await;
-                env::var("DEV_DATABASE_URL").unwrap()
+                env::var("DEV_DATABASE_URL").expect("Env variable `DEV_DATABASE_URL` not found")
             }
         },
         _ => {
             _dev_utils::init_dev().await;
-            env::var("DEV_DATABASE_URL").unwrap()
+            env::var("DEV_DATABASE_URL").expect("Env variable `DEV_DATABASE_URL` not found")
         }
     };
     
@@ -60,7 +60,7 @@ async fn main() -> Result<()>{
     let app_state: AppState = AppState { pool };
 
     // Get Redis Client;
-    let connection = create_redis_connection().await.unwrap();
+    let connection = create_redis_connection().await.expect("Could not connect to redis");
 	info!("CONNECTED TO REDIS");
 
     // Get information and initialize the cache
@@ -80,7 +80,7 @@ async fn main() -> Result<()>{
     Server::bind(&addr)
         .serve(all_routes.into_make_service())
         .await
-        .unwrap();
+        .expect("Could not start server `Server::bind` failed");
 
 
     Ok(())

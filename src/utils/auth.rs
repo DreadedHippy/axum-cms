@@ -17,7 +17,7 @@ pub fn verify_hash(password: String, hash: &str) -> Result<bool> {
 }
 
 pub fn create_jwt(email: String) -> Result<String>{
-	let jwt_secret = EncodingKey::from_secret(env::var("JWT_SECRET").unwrap().as_ref());
+	let jwt_secret = EncodingKey::from_secret(env::var("JWT_SECRET").expect("Env variable `JWT_SECRET` not found").as_ref());
 	let mut now = Utc::now();
 	let iat = (now.timestamp() as usize); // Issued at
 	let expires_in = Duration::seconds(JWT_DURATION_IN_SECONDS);
@@ -34,7 +34,7 @@ pub fn create_jwt(email: String) -> Result<String>{
 }
 
 pub fn is_jwt_valid(token: &str) -> Result<bool>{
-	let secret = env::var("JWT_SECRET").unwrap();
+	let secret = env::var("JWT_SECRET").expect("Env variable `JWT_SECRET` not found");
 	let key = &DecodingKey::from_secret(secret.as_bytes());
 	
 	let is_decoded = decode::<Claims>(token, key, &Validation::new(Algorithm::HS256)).map_err(|e| {
