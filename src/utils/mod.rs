@@ -14,7 +14,7 @@ pub mod custom_extractor;
 
 const JWT_DURATION_IN_SECONDS: i64 = 60 * 60 * 2;
 
-
+/// A response mapper for the entire app :shrug:
 pub async fn main_response_mapper(res:Response) -> Response {
 	debug!(" {:<12} - main_response_mapper", "RES_MAPPER");
 
@@ -22,6 +22,7 @@ pub async fn main_response_mapper(res:Response) -> Response {
 	res
 }
 
+/// Get a postgres database connection
 pub async fn connect_to_postgres(database_url: String) -> Result<Pool<Postgres>> {
 	let pool = PgPool::connect(&database_url).await?;
 

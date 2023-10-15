@@ -8,7 +8,7 @@ use tracing::info;
 use crate::models::{post::Post, author::Author};
 
 
-
+/// Get a connection to redis
 pub async fn create_redis_connection() -> Result<Connection>{
 	let (redis_conn_url) = match env::var("MODE") {
 		Ok(mode) => {
@@ -29,6 +29,7 @@ pub async fn create_redis_connection() -> Result<Connection>{
 	Ok(conn)
 }
 
+/// Update posts in the Redis Cache
 pub async fn  update_cached_posts(posts: &Vec<Post>) -> Result<()>{
 	let data = serde_json::to_string(posts).expect("Could not serialize posts");
 	let mut conn = create_redis_connection().await.expect("Could not create redis connection");
@@ -37,7 +38,7 @@ pub async fn  update_cached_posts(posts: &Vec<Post>) -> Result<()>{
 	Ok(())
 }
 
-
+/// Update authors in the redis cache
 pub async fn  update_cached_authors(authors: &Vec<Author>) -> Result<()>{
 	let data = serde_json::to_string(&authors).expect("Could not serialize authors");
 	let mut conn = create_redis_connection().await.expect("Could not create redis connection");
@@ -46,6 +47,7 @@ pub async fn  update_cached_authors(authors: &Vec<Author>) -> Result<()>{
 	Ok(())
 }
 
+/// Initialize the cache, ideally to be used on server startup
 pub async fn initialize_cache(authors: Vec<Author>, posts: Vec<Post>) -> Result<()> {
 	//TODO: Use different cache url depending on dev mode or prod mode
 	let posts_data = serde_json::to_string(&posts).expect("Could not serialize posts");

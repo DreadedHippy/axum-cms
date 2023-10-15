@@ -5,42 +5,69 @@ use tracing::debug;
 pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug)]
+
+/// Custom error enum, holding errors encountered during request handling
 pub enum Error {
 	LoginFail, // Due to invalid credentials
 
-	// -- Auth errors.
+	// region: -- Auth errors.
+
+	/// Auth failed, no auth token in cookie
 	AuthFailNoAuthTokenCookie,
+	/// Auth failed, auth token cookie exists but is expired
 	AuthFailCookieExpired,
+	/// Auth failed, JWT is invalid
 	InvalidJwt,
 
-	// -- Model errors.
+	
+	// endregion: -- Auth errors.
+
+	// region: -- Model errors.
 	
 	// Author
+
+	/// Author could not be created
 	CouldNotCreateAuthor,
+	/// List of authors could not be gotten
 	CouldNotGetAuthors,
+	/// A specific author could not be retrieved
 	CouldNotGetAuthor,
+	/// A specific author could not be edited
 	CouldNotEditAuthor,
+	/// A specific author could not be deleted
 	CouldNotDeleteAuthor,
 
 	// Post
+
+	/// Post could not be created
 	CouldNotCreatePost,
+	/// List of posts could not be retrieved
 	CouldNotGetPosts,
+	/// A post could not be retrieved
 	CouldNotGetPost,
+	/// A post could not be edited
 	CouldNotEditPost,
+	/// A post could not be deleted
 	CouldNotDeletePost,
+	/// A post can only be edited by its own author
 	OnlyAuthorCanEdit,
 
+	// endregion: -- Model errors
+
+	// region: -- Misc.
 	// Server
+	/// An error occurred on the server, not sure which
 	InternalServerError,
 
 	// Cache
+	/// Something happened and Redis failed to connect
 	CouldNotConnectToRedis,
 	// CouldNotFetchPosts,
 
 	// -- Config
 	ConfigMissingEnv(&'static str)
 
-	// -- 
+	// endregion: -- Misc.
 }
 
 impl IntoResponse for Error {

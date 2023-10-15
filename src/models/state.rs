@@ -4,12 +4,14 @@ use crate::{models::author::{Author, AuthorForResult}, utils::cache::{update_cac
 use super::{author::AuthorForCreate, post::{PostForCreate, Post}};
 
 #[derive(Clone)]
+/// Struct holding the application state
 pub struct AppState {
 	pub pool: Pool<Postgres>
 }
 
 impl AppState {
 	// region: --Database Manipulations for authors
+	/// Create an author in the database via SQLX
 	pub async fn create_author(&self, author_info: AuthorForCreate) -> Result<Author, Error>{
 		let q = r#"
 		INSERT INTO authors (name, email, password)
@@ -30,6 +32,7 @@ impl AppState {
 		
 	}
 
+	/// Get all authors from the database
 	pub async fn get_all_authors(&self) -> Result<Vec<Author>, Error> {
 		let q = r#"
 		SELECT * FROM authors
@@ -46,6 +49,7 @@ impl AppState {
 		Ok(authors)
 	}	
 
+	/// Get specific author from the database
 	pub async fn get_specific_author(&self, id: i64) -> Result<Author, Error> {
 		let q = r#"
 		SELECT * FROM authors where id = $1
@@ -61,6 +65,7 @@ impl AppState {
 		Ok(author)
 	}
 
+	/// Edit an author in the database, returning the updated author
 	pub async fn edit_author(&self, name: String, id: i64) -> Result<Author, Error> {
 		let q = r#"
 		UPDATE authors
@@ -86,6 +91,7 @@ impl AppState {
 		Ok(author)
 	}
 
+	/// Delete an author from the database
 	pub async fn delete_author(&self, id: i64) -> Result<bool, Error> {
 		let q = r#"
 		DELETE FROM authors
@@ -106,6 +112,7 @@ impl AppState {
 		return Ok(true);
 	}
 
+	/// Get an author from the database given their email
 	pub async fn get_author_by_email(&self, email: String) -> Result<Author, Error> {
 		let q = r#"
 		SELECT * FROM authors where email = $1
@@ -125,7 +132,7 @@ impl AppState {
 
 impl AppState {
 	// region: --Database Manipulations for posts
-	
+	/// Create a post in the database via SQLX
 	pub async fn create_post(&self, post_info: PostForCreate, author_id: i64) -> Result<Post, Error>{
 		let q = r#"
 		INSERT INTO posts (title, content, author_id)
@@ -155,6 +162,7 @@ impl AppState {
     Ok(result)		
 	}
 
+	/// Get all posts from the database
 	pub async fn get_all_posts(&self) -> Result<Vec<Post>, Error> {
 		let q = r#"
 		SELECT * FROM posts
@@ -169,6 +177,7 @@ impl AppState {
 		Ok(posts)
 	}
 
+	/// Get specific post from the database
 	pub async fn get_specific_post(&self, id: i64) -> Result<Post, Error> {
 		let q = r#"
 		SELECT * FROM posts where id = $1
@@ -184,7 +193,7 @@ impl AppState {
 		Ok(post)
 	}
 
-	// Get author of a post
+	/// Get the author of a specific post given the id of the post
 	pub async fn get_post_author(&self, post_id: i64) -> Result<Author, Error>{
 		let q = r#"
 			SELECT *
@@ -206,6 +215,7 @@ impl AppState {
 		Ok(original_author)
 	}
 
+	/// Edit a post in the database, returning the updated post
 	pub async fn edit_post(&self, title: String, content: String, id: i64) -> Result<Post, Error> {
 
 		let q = r#"
@@ -239,6 +249,7 @@ impl AppState {
 	}
 
 	
+	/// Delete a post post from the database
 	pub async fn delete_post(&self, id: i64) -> Result<bool, Error> {
 		let q = r#"
 		DELETE FROM posts
@@ -259,6 +270,7 @@ impl AppState {
 		return Ok(true);
 	}
 
+	/// Get all posts by a specific author, given the author's email
 	pub async fn get_posts_by_author(&self, email: String) -> Result<Vec<Post>, Error> {
 		// println!("{}", email);
 		let q = r#"
@@ -287,6 +299,7 @@ impl AppState {
 
 impl AppState {
 	// #[tokio::main]
+	/// Update the cache of authors
 	pub async fn update_authors_cache(&self) {
 		if let Ok(authors) = self.get_all_authors().await {
 
@@ -300,6 +313,7 @@ impl AppState {
 
 	
 	// #[tokio::main]
+	/// Update the cache of posts
 	pub async fn update_posts_cache(&self) {
 		if let Ok(posts) = self.get_all_posts().await {
 

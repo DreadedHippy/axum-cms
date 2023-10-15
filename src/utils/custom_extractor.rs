@@ -5,13 +5,13 @@ use tracing::debug;
 
 #[derive(Debug, Error)]
 
-// Struct to help with JSON Deserialization error
+/// Struct to help with JSON Deserialization error
 pub enum ApiError {
 	#[error(transparent)]
 	JsonExtractorRejection(#[from] JsonRejection),
 }
 
-// Implement IntoResponse to enable sending a server response
+/// Implement IntoResponse to enable sending a server response
 impl IntoResponse for ApiError {
 	fn into_response(self) -> axum::response::Response {
 

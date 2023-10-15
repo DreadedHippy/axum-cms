@@ -25,6 +25,7 @@ use crate::utils::custom_extractor::ApiError;
 // 	Ok(Json(response))
 // }
 
+/// Handler to get all authors
 pub async fn handler_author_get_all(State(app_state): State<AppState>) -> Result<Json<CustomResponse<Author>>> {
 
 	let authors = app_state.get_all_authors().await.map_err(|e|  Error::CouldNotGetAuthors)?;
@@ -38,6 +39,7 @@ pub async fn handler_author_get_all(State(app_state): State<AppState>) -> Result
 	Ok(Json(response))
 }
 
+/// Handler to get a specific author
 pub async fn handler_author_get_specific(State(app_state): State<AppState>, Path(id): Path<i64>) -> Result<Json<CustomResponse<Author>>> {
 
 	let pool = app_state.pool;
@@ -53,6 +55,7 @@ pub async fn handler_author_get_specific(State(app_state): State<AppState>, Path
 	Ok(Json(response))
 }
 
+/// Handler to edit a specific author
 pub async fn handler_author_edit(
 	State(app_state): State<AppState>,
 	Path(id): Path<i64>,
@@ -73,6 +76,7 @@ pub async fn handler_author_edit(
 	Ok(Json(response))
 }
 
+/// Handler to delete an author
 pub async fn handler_author_delete(State(app_state): State<AppState>, Path(id): Path<i64>) -> Result<Json<CustomResponse<Author>>> {
 	// Delete the author, we don't care about the result, it only should throw no error
 	let _ = app_state.delete_author(id).await.map_err(|e| {

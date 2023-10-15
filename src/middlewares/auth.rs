@@ -5,6 +5,7 @@ use crate::{models::error::{Result, Error}, utils::auth::is_jwt_valid, middlewar
 
 use super::AUTH_TOKEN;
 
+/// Middleware to require authentication before accessing handler
 pub async fn mw_require_auth<B>(
 	cookies: Cookies,
 	mut req: Request<B>,

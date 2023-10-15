@@ -6,6 +6,7 @@ use tracing::debug;
 
 use crate::{models::{auth::LoginPayload, custom_response::{CustomResponse, CustomResponseData}, error::{Error, Result}, state::AppState, author::{AuthorForCreate, Author, AuthorForResult}}, middlewares::{AUTH_TOKEN, AUTHORIZATION_HEADER}, utils::{auth::{create_jwt, hash_password, verify_hash}, custom_extractor::ApiError}};
 
+/// Handler to manage author login
 pub async fn handler_login(
 	cookies: Cookies,
 	State(app_state): State<AppState>,
@@ -38,14 +39,17 @@ pub async fn handler_login(
 	Ok(Json(response))
 }
 
+/// Handler to manage author sign-up
 pub async fn handler_signup(
 	cookies: Cookies,
 	State(app_state): State<AppState>,
 	WithRejection((Json(author_info)), _): WithRejection<Json<AuthorForCreate>, ApiError>
 ) -> Result<Json<CustomResponse<AuthorForResult>>> {
+	// Hash the password
 	let password = hash_password(author_info.password.clone())?;
 	debug!(" {:<12} - api_signup", "HANDLER");
 
+	// Recreate the author information with the hashed password
 	let secure_author_info: AuthorForCreate  = AuthorForCreate {
 		name: author_info.name,
 		email: author_info.email,
@@ -61,6 +65,7 @@ pub async fn handler_signup(
 	// Set auth header cookie
 	cookies.add(Cookie::new(AUTHORIZATION_HEADER, format!("Bearer {}", jwt)));
 
+	// Construct the author to be sent as a response
 	let resulting_author = AuthorForResult {
 		name: author.name,
 		email: author.email

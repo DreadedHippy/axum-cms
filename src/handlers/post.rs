@@ -3,6 +3,7 @@ use axum_extra::extract::WithRejection;
 
 use crate::{models::{error::{Result, Error}, custom_response::{CustomResponse, CustomResponseData}, post::{Post, PostForCreate, self, PostParams, PostForEdit}, state::AppState}, utils::{custom_extractor::ApiError, auth::get_info_from_jwt}};
 
+/// Handler to create a post
 pub async fn handler_post_create(
 	State(app_state): State<AppState>,
 	Extension(token): Extension<String>,
@@ -23,6 +24,7 @@ pub async fn handler_post_create(
 	Ok(Json(response))
 }
 
+/// Handler to get every post from every author all at once
 pub async fn handler_post_get_all(Query(params): Query<PostParams>, State(app_state): State<AppState>) -> Result<Json<CustomResponse<Post>>>{
 	let posts = match params.author {
 		Some(email) => {
@@ -50,6 +52,7 @@ pub async fn handler_post_get_all(Query(params): Query<PostParams>, State(app_st
 	Ok(Json(response))
 }
 
+// Handler to get a specific post
 pub async fn handler_post_get_specific(State(app_state): State<AppState>,  Path(id): Path<i64>) -> Result<Json<CustomResponse<Post>>>{
 
 	let retrieved_post: Post = app_state.get_specific_post(id).await.map_err(|e| {
@@ -65,7 +68,7 @@ pub async fn handler_post_get_specific(State(app_state): State<AppState>,  Path(
 	Ok(Json(response))
 }
 
-
+/// Handler to edit a specific post
 pub async fn handler_post_edit(
 	Extension(token): Extension<String>,
 	State(app_state): State<AppState>,
@@ -101,7 +104,7 @@ pub async fn handler_post_edit(
 	Ok(Json(response))
 }
 
-
+/// Handler to delete a post
 pub async fn handler_post_delete(State(app_state): State<AppState>,  Path(id): Path<i64>) -> Result<Json<CustomResponse<Post>>>{
 	// Delete the post, we don't care about the result, it only should throw no error
 	let _ = app_state.delete_post(id).await.map_err(|e| {

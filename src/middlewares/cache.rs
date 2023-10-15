@@ -10,6 +10,7 @@ use crate::models::post::Post;
 use crate::utils::cache::create_redis_connection;
 use crate::models::error::{Result, Error};
 
+/// Middleware to get cached posts
 pub async fn mw_get_cached_posts<B>(
 	req: Request<B>,
 	next: Next<B>
@@ -44,7 +45,7 @@ pub async fn mw_get_cached_posts<B>(
 
 }
 
-
+/// Middleware to get cached authors
 pub async fn mw_get_cached_authors<B>(
 	req: Request<B>,
 	next: Next<B>
