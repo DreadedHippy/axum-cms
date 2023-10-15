@@ -28,6 +28,7 @@ pub enum Error {
 	CouldNotGetPost,
 	CouldNotEditPost,
 	CouldNotDeletePost,
+	OnlyAuthorCanEdit,
 
 	// Server
 	InternalServerError,
@@ -107,6 +108,14 @@ impl IntoResponse for Error {
 				});
 				(StatusCode::INTERNAL_SERVER_ERROR, Json(payload)).into_response()
 			},
+
+			Error::OnlyAuthorCanEdit => {
+				let payload = json!({
+					"status": false,
+					"message": "Only the author of this post may edit it"
+				});
+				(StatusCode::FORBIDDEN, Json(payload)).into_response()
+			}
 			_ => {
 				let payload = json!({
 					"status": false,

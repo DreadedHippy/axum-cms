@@ -13,8 +13,7 @@ pub struct Post {
 #[derive(Deserialize, Debug)]
 pub struct PostForCreate {
 	pub title: String,
-	pub content: String,
-	pub author_id: i64
+	pub content: String
 }
 
 #[derive(Deserialize, Debug)]

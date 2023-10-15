@@ -10,24 +10,19 @@ pub struct AppState {
 
 impl AppState {
 	// region: --Database Manipulations for authors
-	pub async fn create_author(&self, author_info: AuthorForCreate) -> Result<AuthorForResult, Error>{
+	pub async fn create_author(&self, author_info: AuthorForCreate) -> Result<Author, Error>{
 		let q = r#"
 		INSERT INTO authors (name, email, password)
 		VALUES( $1, $2, $3)
 		RETURNING *
 		"#;
 
-		let rec = sqlx::query(q)
+		let result = sqlx::query_as::<_, Author>(q)
 		.bind(author_info.name)
 		.bind(author_info.email)
 		.bind(author_info.password)
 		.fetch_one(&self.pool)
 		.await?;
-
-		let result = AuthorForResult {
-			name: rec.get("name"),
-			email: rec.get("email")
-		};
 
 		// println!("{:#?}", result);
 
@@ -131,7 +126,7 @@ impl AppState {
 impl AppState {
 	// region: --Database Manipulations for posts
 	
-	pub async fn create_post(&self, post_info: PostForCreate) -> Result<Post, Error>{
+	pub async fn create_post(&self, post_info: PostForCreate, author_id: i64) -> Result<Post, Error>{
 		let q = r#"
 		INSERT INTO posts (title, content, author_id)
 		VALUES( $1, $2, $3)
@@ -141,7 +136,7 @@ impl AppState {
 		let rec = sqlx::query(q)
 		.bind(post_info.title)
 		.bind(post_info.content)
-		.bind(post_info.author_id)
+		.bind(author_id)
 		.fetch_one(&self.pool)
 		.await?;
 
@@ -189,7 +184,30 @@ impl AppState {
 		Ok(post)
 	}
 
+	// Get author of a post
+	pub async fn get_post_author(&self, post_id: i64) -> Result<Author, Error>{
+		let q = r#"
+			SELECT *
+			FROM authors a
+			WHERE a.id IN (
+				SELECT author_id
+				FROM posts
+				WHERE id = $1
+			)
+		"#;
+
+		let record = sqlx::query_as::<_, Author>(q);
+
+		let original_author = record
+			.bind(post_id)
+			.fetch_one(&self.pool)
+			.await?;
+
+		Ok(original_author)
+	}
+
 	pub async fn edit_post(&self, title: String, content: String, id: i64) -> Result<Post, Error> {
+
 		let q = r#"
 		UPDATE posts
 		SET title = COALESCE(

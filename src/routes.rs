@@ -33,8 +33,11 @@ fn routes_post(app_state: AppState) -> Router {
 	Router::new()
 		.route(
 			"/post",
-			post(handler_post_create)
-			.get(handler_post_get_all).route_layer(middleware::from_fn(mw_get_cached_posts))
+			post(handler_post_create).route_layer(middleware::from_fn(mw_require_auth))
+		)
+		.route(
+			"/post",
+			get(handler_post_get_all).route_layer(middleware::from_fn(mw_get_cached_posts))
 		)
 		.route("/post/:id", 
 			get(handler_post_get_specific)

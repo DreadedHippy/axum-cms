@@ -14,7 +14,7 @@ pub async fn handler_login(
 	debug!(" {:<12} - api_login", "HANDLER");
 
 	// Check for author in DB
-	let author_from_db = app_state.get_author_by_email(payload.email).await.map_err(|_| Error::InternalServerError)?;
+	let author_from_db = app_state.get_author_by_email(payload.email).await.map_err(|_| Error::CouldNotGetAuthor)?;
 
 
 	// Confirm password match
@@ -23,7 +23,7 @@ pub async fn handler_login(
 	}
 	
 	// Create jwt
-	let jwt = create_jwt(author_from_db.email.clone())?;
+	let jwt = create_jwt(author_from_db.email.clone(), author_from_db.id)?;
 
 	// Set auth header cookie
 	cookies.add(Cookie::new(AUTHORIZATION_HEADER, format!("Bearer {}", jwt)));
@@ -56,16 +56,21 @@ pub async fn handler_signup(
 	let author = app_state.create_author(secure_author_info).await.map_err(|e| Error::CouldNotCreateAuthor)?;
 
 	// Create JWT
-	let jwt = create_jwt(author.email.clone())?;
+	let jwt = create_jwt(author.email.clone(), author.id)?;
 
 	// Set auth header cookie
 	cookies.add(Cookie::new(AUTHORIZATION_HEADER, format!("Bearer {}", jwt)));
+
+	let resulting_author = AuthorForResult {
+		name: author.name,
+		email: author.email
+	};
 
 	// Send successful sign up message
 	let response = CustomResponse::<AuthorForResult>::new(
 		true,
 		Some(format!("Signed up successfully")),
-		Some(CustomResponseData::Item(author))
+		Some(CustomResponseData::Item(resulting_author))
 	);
 
 	Ok(Json(response))

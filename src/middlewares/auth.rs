@@ -7,7 +7,7 @@ use super::AUTH_TOKEN;
 
 pub async fn mw_require_auth<B>(
 	cookies: Cookies,
-	req: Request<B>,
+	mut req: Request<B>,
 	next: Next<B>
 ) -> Result<Response> {
 	debug!(" {:<12} - mw_require_auth", "MIDDLEWARE");
@@ -15,17 +15,19 @@ pub async fn mw_require_auth<B>(
 
 	// TODO: Real auth-token parsing & validation.
 	let auth_token = auth_cookie.ok_or(Error::AuthFailNoAuthTokenCookie)?;
-	let cookie_info = auth_token.split_whitespace().collect::<Vec<&str>>();
+	let cookie_info = auth_token.split_whitespace().map(String::from).collect::<Vec<String>>();
 
 	if cookie_info[0] != "Bearer" {
 		return Err(Error::AuthFailNoAuthTokenCookie)
 	}
 	
-	if let Some(&jwt) = cookie_info.get(1) {
+	if let Some(jwt) = cookie_info.get(1) {
 		is_jwt_valid(jwt)?;
 	} else {
 		return Err(Error::AuthFailNoAuthTokenCookie)
 	}
+
+	req.extensions_mut().insert(cookie_info[1].clone());
 
 	Ok(next.run(req).await)
 }

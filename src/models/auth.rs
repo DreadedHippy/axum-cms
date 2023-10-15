@@ -17,7 +17,8 @@ pub struct SignupPayload {
 pub struct Claims { // For JWT creation
 	pub email: String,
 	pub exp: usize,
-	pub iat: usize
+	pub iat: usize,
+	pub id: i64
 }
 
 
