@@ -72,26 +72,26 @@ pub async fn handler_post_get_specific(State(app_state): State<AppState>,  Path(
 pub async fn handler_post_edit(
 	Extension(token): Extension<String>,
 	State(app_state): State<AppState>,
-	Path(id): Path<i64>,
+	Path(post_id): Path<i64>,
 	WithRejection((Json(post)), _): WithRejection<Json<PostForEdit>, ApiError>
 	) -> Result<Json<CustomResponse<Post>>>{
 
 	let title = post.title.unwrap_or_default();
 	let content = post.content.unwrap_or_default();
-	let (editor_email, _) = get_info_from_jwt(token)?; // Get email of editor from token
+	let (editor_email, editor_id) = get_info_from_jwt(token)?; // Get email of editor from token
 
 	// Get original post author from token
-	let original_author = app_state.get_post_author(id).await.map_err(|e| {
+	let original_author_id = app_state.get_post_author_id(post_id).await.map_err(|e| {
 		Error::CouldNotEditPost
 	})?;
 
 	// If editor is not original post author, reject
-	if original_author.email != editor_email {
+	if original_author_id != editor_id {
 		return Err(Error::OnlyAuthorCanEdit)
 	}
 
 	// Edit post if all conditions pass
-	let edited_post: Post = app_state.edit_post(title, content, id).await.map_err(|e| {
+	let edited_post: Post = app_state.edit_post(title, content, post_id).await.map_err(|e| {
 		Error::CouldNotEditPost
 	})?;
 

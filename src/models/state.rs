@@ -193,26 +193,18 @@ impl AppState {
 		Ok(post)
 	}
 
-	/// Get the author of a specific post given the id of the post
-	pub async fn get_post_author(&self, post_id: i64) -> Result<Author, Error>{
+	/// Get the author id of a specific post given the id of the post
+	pub async fn get_post_author_id(&self, post_id: i64) -> Result<i64, Error>{
 		let q = r#"
-			SELECT *
-			FROM authors a
-			WHERE a.id IN (
-				SELECT author_id
-				FROM posts
-				WHERE id = $1
-			)
+			SELECT author_id
+			FROM posts
+			WHERE id = $1
 		"#;
 
-		let record = sqlx::query_as::<_, Author>(q);
-
-		let original_author = record
-			.bind(post_id)
+		let row: (i64, ) = sqlx::query_as(q).bind(post_id)
 			.fetch_one(&self.pool)
 			.await?;
-
-		Ok(original_author)
+		Ok(row.0)
 	}
 
 	/// Edit a post in the database, returning the updated post
