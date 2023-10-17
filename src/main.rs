@@ -55,6 +55,7 @@ async fn main() -> Result<()>{
 
     // Get Postgresql connection pool
     let pool = connect_to_postgres(database_url).await?;
+	info!("CONNECTED TO POSTGRES");
 
     // Initialize App State with connection pool
     let app_state: AppState = AppState { pool };

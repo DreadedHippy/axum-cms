@@ -9,7 +9,7 @@ pub async fn init_dev() {
 	INIT.get_or_init(|| async {
 		info!("{:<12} - init_dev_all()", "FOR-DEV-ONLY");
 
-		dev_db::init_dev_db().await.unwrap();
+		dev_db::init_dev_db().await.expect("Could not initialize dev database");
 	})
 	.await;
 }
