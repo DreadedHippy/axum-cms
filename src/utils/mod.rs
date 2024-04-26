@@ -51,6 +51,37 @@ pub async fn connect_to_postgres(database_url: String) -> Result<Pool<Postgres>>
 
 	let _ = sqlx::query(create_posts_table_query).execute(&pool).await?;
 
+	// Drop EDIT_STATUS enum if present;
+	// let drop_edit_status_enum_query = r#"
+	// 	DROP TYPE IF EXISTS EDIT_STATUS;
+	// "#;
+
+	// Create EDIT_STATUS enum
+	let create_edit_status_enum_query = r#"
+	DO $$ BEGIN
+		CREATE TYPE EDIT_STATUS AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED');
+	EXCEPTION
+		WHEN duplicate_object THEN null;
+	END $$;
+	"#;
+
+	// let _ = sqlx::query(drop_edit_status_enum_query).execute(&pool).await?;
+	let _ = sqlx::query(create_edit_status_enum_query).execute(&pool).await?;
+
+	// Create posts table if absent
+	let create_edits_table_query = r#"
+		CREATE TABLE IF NOT EXISTS edits (
+			post_id BIGINT NOT NULL,
+			author_id BIGINT NOT NULL,
+			status EDIT_STATUS NOT NULL DEFAULT 'PENDING'::EDIT_STATUS,
+			FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE SET NULL,
+			FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE SET NULL,
+			PRIMARY KEY (author_id, post_id)
+		)
+	"#;
+
+	let _ = sqlx::query(create_edits_table_query).execute(&pool).await?;
+
 	// Return a Postgres database pool
 	Ok(pool)
 }

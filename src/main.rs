@@ -34,18 +34,17 @@ async fn main() -> Result<()>{
 
     // -- FOR DEV ONLY
 
+    
     let (database_url) = match env::var("MODE") {
         Ok(mode) => {
             if mode == String::from("production") {
                 tracing::warn!("PRODUCTION MODE");
                 env::var("PROD_DATABASE_URL").expect("Env variable `PROD_DATABASE_URL` not found")
             } else {
-                _dev_utils::init_dev().await;
                 env::var("DEV_DATABASE_URL").expect("Env variable `DEV_DATABASE_URL` not found")
             }
         },
         _ => {
-            _dev_utils::init_dev().await;
             env::var("DEV_DATABASE_URL").expect("Env variable `DEV_DATABASE_URL` not found")
         }
     };

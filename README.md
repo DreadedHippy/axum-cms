@@ -24,7 +24,7 @@ A simple production-ready backend server template for Content Management Systems
 ## Instructions
 1. Create a .env file in your local copy of the repository, and set the following env variables
 	- `PROD_DATABASE_URL`: Your postgres database for production
-	- `DEV_DATABASE_URL`: Your postgres database for development, set to `postgres://app_user:dev_only_pwd@localhost/app_db` to work with default config.
+	- `DEV_DATABASE_URL`: Your postgres database for development
 	- `JWT_SECRET`: Your JWT secret
 	- `DEV_REDIS_CONN_URL`: Your redis connection url for development, set to 
 	- `PROD_REDIS_CONN_URL`: Your redis connection url for production
@@ -34,7 +34,7 @@ A simple production-ready backend server template for Content Management Systems
 ```sh
 # Default config
 # Start postgresql server docker image:
-docker run --rm --name pg -p 5432:5432 \
+docker run --rm --name pg -p 5433:5433 \
    -e POSTGRES_PASSWORD=welcome \
    postgres:15
 
@@ -52,7 +52,7 @@ ALTER DATABASE postgres SET log_statement = 'all';
 
 ## Notes
 - **IMPORTANT!**: If you decide to change `DEV_DATABASE_URL`, edit the following files accordingly:
-	- `sql\dev_initial\00-recreate-dv.sql`
+	- `sql\dev_initial\00-recreate-db.sql`
 	- `src\_dev_utils\dev_db.rs`
 - Use the "WithRejection\<`CUSTOM_JSON_BODY`, ApiError>" as Json body type in order to enable JSON extraction errors
 - All errors can be found in `src/models/error.rs` in the `Error` enum. You may write custom responses for each error inside the `impl IntoResponse` block for the `Error` enum
