@@ -1,8 +1,8 @@
-use axum::{Router, routing::{get, post}, extract::State, middleware};
+use axum::{extract::State, http::StatusCode, middleware, response::IntoResponse, routing::{get, patch, post}, Router};
 use sqlx::{Pool, Postgres};
 use tower_cookies::CookieManagerLayer;
 
-use crate::{handlers::{hello::{handler_hello, handler_hello_2}, post::{handler_post_get_all, handler_post_create, handler_post_get_specific, handler_post_edit, handler_post_delete}, auth::{handler_login, handler_signup}, author::{handler_author_get_all, handler_author_get_specific, handler_author_edit}}, models::state::AppState, middlewares::{self, cache::{mw_get_cached_posts, mw_get_cached_authors}, auth::mw_require_auth}};
+use crate::{handlers::{auth::{handler_login, handler_signup}, author::{handler_author_edit, handler_author_get_all, handler_author_get_specific}, edit_suggestion::handler_edit_suggestion_create, hello::{handler_hello, handler_hello_2}, post::{handler_post_create, handler_post_delete, handler_post_edit, handler_post_get_all, handler_post_get_specific}}, middlewares::{self, auth::mw_require_auth, cache::{mw_get_cached_authors, mw_get_cached_posts}}, models::state::AppState};
 
 pub fn all_routes(app_state: AppState) -> Router {
 	Router::new()
@@ -10,6 +10,8 @@ pub fn all_routes(app_state: AppState) -> Router {
 		.merge(routes_author(app_state.clone()))
 		.merge(routes_post(app_state.clone()))
 		.merge(routes_auth(app_state.clone()))
+		// .nest("/edit-suggestion", router)
+		// .merge(routes_edit_suggestion(app_state.clone()))
 
 }
 
@@ -23,7 +25,9 @@ fn routes_author(app_state: AppState) -> Router {
 		)
 		.route("/author/:id",
 			get(handler_author_get_specific)
-			.patch(handler_author_edit)
+		)
+		.route("/author/:id",
+			patch(handler_author_edit).route_layer(middleware::from_fn(mw_require_auth))
 		)
 		.with_state(app_state)
 }
@@ -41,7 +45,9 @@ fn routes_post(app_state: AppState) -> Router {
 		)
 		.route("/post/:id", 
 			get(handler_post_get_specific)
-			.patch(handler_post_edit)
+		)
+		.route("/post/:id",
+			patch(handler_post_edit)
 			.delete(handler_post_delete).route_layer(middleware::from_fn(mw_require_auth))
 		)
 		.with_state(app_state)
@@ -56,4 +62,17 @@ fn routes_auth(app_state: AppState) -> Router {
 		.route(
 			"/signup", post(handler_signup)
 		).with_state(app_state)
+}
+
+fn routes_edit_suggestion(app_state: AppState) -> Router {
+	Router::new()
+		.route(
+			"/edit-suggestion/new",
+			post(handler_edit_suggestion_create).route_layer(middleware::from_fn(mw_require_auth))
+		).with_state(app_state)
+}
+
+/// 404 Route
+pub async fn handler_404() -> impl IntoResponse {
+	(StatusCode::NOT_FOUND, "Route not found")
 }

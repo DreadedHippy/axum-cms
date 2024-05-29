@@ -4,6 +4,8 @@ A simple production-ready backend server template for Content Management Systems
 ## Features
 - Authors (Authors of posts)
 - Posts (The actual content to be managed)
+- EditSuggestion (WIP)
+- Google sign-up/sign-in (Coming soon)
 
 ## Information
 - Database used: Postgres
@@ -56,3 +58,6 @@ ALTER DATABASE postgres SET log_statement = 'all';
 	- `src\_dev_utils\dev_db.rs`
 - Use the "WithRejection\<`CUSTOM_JSON_BODY`, ApiError>" as Json body type in order to enable JSON extraction errors
 - All errors can be found in `src/models/error.rs` in the `Error` enum. You may write custom responses for each error inside the `impl IntoResponse` block for the `Error` enum
+- Tests are stored in: `/examples` folder 
+- Run the tests with the command: `cargo run --example {FILE_NAME}`, where `FILE_NAME` is the name of the file containing the test
+- With `cargo watch` installed, Re-run the test on each file save with the command: `cargo watch -q -c -w examples/ -x "run --example {FILE_NAME}"`, where `FILE_NAME` is the name of the file containing the test

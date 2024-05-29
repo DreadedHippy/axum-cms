@@ -11,6 +11,8 @@ pub mod post;
 pub mod state;
 /// All models pertaining to authentication
 pub mod auth;
+/// All models pertaining to edit suggestions
+pub mod edit_suggestion;
 #[derive(Debug, Deserialize)]
 pub struct HelloParams {
 	pub name: Option<String>

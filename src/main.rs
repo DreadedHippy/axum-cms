@@ -22,6 +22,8 @@ pub mod _dev_utils;
 
 pub use config::config;
 
+use crate::routes::handler_404;
+
 #[tokio::main]
 async fn main() -> Result<()>{
     dotenv().ok();
@@ -71,7 +73,8 @@ async fn main() -> Result<()>{
 
     let all_routes = all_routes(app_state)
         .layer(middleware::map_response(main_response_mapper))
-		.layer(CookieManagerLayer::new());
+		.layer(CookieManagerLayer::new())
+        .fallback(handler_404);
 
     
     info!("{:<12} - {addr}\n", "LISTENING");

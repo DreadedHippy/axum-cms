@@ -1,5 +1,5 @@
 // use crate::{Result, models::{error::{Error, Result}, self}};
-use crate::models::error::{Result as CustomResult, Error as CustomError};
+use crate::models::error::{ServerResult as CustomResult, ServerError as CustomError};
 use std::{env, sync::OnceLock};
 
 pub fn config() -> &'static Config {
