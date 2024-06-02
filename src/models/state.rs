@@ -3,7 +3,7 @@ use std::thread;
 use sqlx::{Pool, Postgres, Error, Row};
 use tokio::runtime::Runtime;
 use tracing::debug;
-use crate::{models::author::{Author, AuthorForResult}, utils::cache::{update_cached_posts, update_cached_authors}, handlers::auth};
+use crate::{models::author::{Author, AuthorForResult}, utils::cache::{update_cached_posts, update_cached_authors}, web::handlers::auth};
 use super::{author::AuthorForCreate, edit_suggestion::{EditSuggestion, EditSuggestionForCreate}, post::{Post, PostForCreate}};
 
 #[derive(Clone)]

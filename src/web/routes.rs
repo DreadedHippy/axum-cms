@@ -2,7 +2,8 @@ use axum::{extract::State, http::StatusCode, middleware, response::IntoResponse,
 use sqlx::{Pool, Postgres};
 use tower_cookies::CookieManagerLayer;
 
-use crate::{handlers::{auth::{handler_login, handler_signup}, author::{handler_author_edit, handler_author_get_all, handler_author_get_specific}, edit_suggestion::handler_edit_suggestion_create, hello::{handler_hello, handler_hello_2}, post::{handler_post_create, handler_post_delete, handler_post_edit, handler_post_get_all, handler_post_get_specific}}, middlewares::{self, auth::mw_require_auth, cache::{mw_get_cached_authors, mw_get_cached_posts}}, models::state::AppState};
+use crate::web::{handlers::{auth::{handler_login, handler_signup}, author::{handler_author_edit, handler_author_get_all, handler_author_get_specific}, edit_suggestion::handler_edit_suggestion_create, hello::{handler_hello, handler_hello_2}, post::{handler_post_create, handler_post_delete, handler_post_edit, handler_post_get_all, handler_post_get_specific}}, middlewares::{self, auth::mw_require_auth, cache::{mw_get_cached_authors, mw_get_cached_posts}}};
+use crate::models::state::AppState;
 
 pub fn all_routes(app_state: AppState) -> Router {
 	Router::new()

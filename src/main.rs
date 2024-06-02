@@ -4,7 +4,7 @@ use anyhow::Result;
 use axum::{Server, middleware};
 use dotenv::dotenv;
 use models::state::AppState;
-use routes::all_routes;
+use web::routes::all_routes;
 use sqlx::{Pool, Postgres};
 use tower_cookies::CookieManagerLayer;
 use tracing::info;
@@ -12,17 +12,15 @@ use tracing_subscriber::EnvFilter;
 use utils::{main_response_mapper, connect_to_postgres, cache::{create_redis_connection, initialize_cache}};
 
 mod config;
-mod routes;
-mod handlers;
+mod web;
 mod utils;
 mod models;
-mod middlewares;
 
 pub mod _dev_utils;
 
 pub use config::config;
 
-use crate::routes::handler_404;
+use crate::web::routes::handler_404;
 
 #[tokio::main]
 async fn main() -> Result<()>{

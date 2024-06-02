@@ -1,7 +1,8 @@
 use axum::{http::Request, middleware::Next, response::Response};
 use tower_cookies::Cookies;
 use tracing::debug;
-use crate::{models::error::{ServerResult, ServerError}, utils::auth::is_jwt_valid, middlewares::AUTHORIZATION_HEADER};
+use crate::{models::error::{ServerResult, ServerError}, utils::auth::is_jwt_valid};
+use crate::web::middlewares::AUTHORIZATION_HEADER;
 
 use super::AUTH_TOKEN;
 
