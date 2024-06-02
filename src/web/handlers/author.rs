@@ -1,13 +1,14 @@
 use std::fmt::format;
 
-use axum::{Extension, Json};
+use axum::{debug_handler, Extension, Json};
 use axum::extract::{Path, State};
 use axum_extra::extract::WithRejection;
 use tracing::info;
 
+use crate::ctx::Ctx;
 use crate::models::author::{Author, AuthorForCreate, AuthorForResult, AuthorForEdit};
-use crate::models::custom_response::{CustomResponse, CustomResponseData};
-use crate::models::error::{ServerResult, ServerError};
+use crate::web::custom_response::{CustomResponse, CustomResponseData};
+use crate::web::error::{ServerResult, ServerError};
 use crate::models::state::AppState;
 use crate::utils::auth::{create_jwt, get_info_from_jwt};
 use crate::utils::custom_extractor::ApiError;
@@ -67,8 +68,10 @@ pub async fn handler_author_get_specific(State(app_state): State<AppState>, Path
 }
 
 /// Handler to edit a specific author
+#[debug_handler]
 pub async fn handler_author_edit(
 	State(app_state): State<AppState>,
+	ctx: Ctx,
 	Extension(token): Extension<String>,
 	Path(id): Path<i64>,
 	WithRejection((Json(author)), _): WithRejection<Json<AuthorForEdit>, ApiError>

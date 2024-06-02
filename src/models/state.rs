@@ -3,13 +3,16 @@ use std::thread;
 use sqlx::{Pool, Postgres, Error, Row};
 use tokio::runtime::Runtime;
 use tracing::debug;
-use crate::{models::author::{Author, AuthorForResult}, utils::cache::{update_cached_posts, update_cached_authors}, web::handlers::auth};
+use crate::{models::author::{Author, AuthorForResult}, utils::cache::{update_cached_authors, update_cached_posts}, web::handlers::auth, ServerResult};
 use super::{author::AuthorForCreate, edit_suggestion::{EditSuggestion, EditSuggestionForCreate}, post::{Post, PostForCreate}};
+use super::store::{new_db_pool, Db};
+
+
 
 #[derive(Clone)]
 /// Struct holding the application state
 pub struct AppState {
-	pub pool: Pool<Postgres>
+	pub pool: Db
 }
 
 impl AppState {

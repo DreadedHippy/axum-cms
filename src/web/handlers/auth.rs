@@ -4,7 +4,8 @@ use chrono::format::format;
 use tower_cookies::{Cookies, Cookie};
 use tracing::debug;
 
-use crate::{models::{auth::LoginPayload, custom_response::{CustomResponse, CustomResponseData}, error::{ServerError, ServerResult}, state::AppState, author::{AuthorForCreate, Author, AuthorForResult}}, web::middlewares::{AUTH_TOKEN, AUTHORIZATION_HEADER}, utils::{auth::{create_jwt, hash_password, verify_hash}, custom_extractor::ApiError}};
+use crate::{models::{state::AppState, author::{AuthorForCreate, Author, AuthorForResult}}, web::middlewares::{AUTH_TOKEN, AUTHORIZATION_HEADER}, utils::{auth::{create_jwt, hash_password, verify_hash}, custom_extractor::ApiError}};
+use crate::web::{auth::LoginPayload, custom_response::{CustomResponse, CustomResponseData}, error::{ServerError, ServerResult}};
 
 /// Handler to manage author login
 pub async fn handler_login(

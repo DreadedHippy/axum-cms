@@ -4,8 +4,8 @@ use anyhow::Result;
 use axum::{Server, middleware};
 use dotenv::dotenv;
 use models::state::AppState;
-use web::routes::all_routes;
-use sqlx::{Pool, Postgres};
+use web::{handlers::routes_static, routes::all_routes};
+use sqlx::{PgPool, Pool, Postgres};
 use tower_cookies::CookieManagerLayer;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
@@ -15,10 +15,13 @@ mod config;
 mod web;
 mod utils;
 mod models;
+mod ctx;
+mod log;
 
 pub mod _dev_utils;
 
 pub use config::config;
+pub use self::web::error::{ServerError, ServerResult};
 
 use crate::web::routes::handler_404;
 
@@ -27,14 +30,15 @@ async fn main() -> Result<()>{
     dotenv().ok();
 
     tracing_subscriber::fmt()
-        .without_time() // For early local development
+        // .without_time() // For early local development
         .with_target(false)
         .with_env_filter(EnvFilter::from_default_env())
         .init();
 
     // -- FOR DEV ONLY
-
+    _dev_utils::init_dev().await;
     
+    // TODO: FIX "DEV" and "PROD" modes initialization
     let (database_url) = match env::var("MODE") {
         Ok(mode) => {
             if mode == String::from("production") {
@@ -52,8 +56,9 @@ async fn main() -> Result<()>{
     // Declare host and port number
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
 
-    // Get Postgresql connection pool
-    let pool = connect_to_postgres(database_url).await?;
+    /// Get Postgresql connection pool
+    // Deprecated: let pool = connect_to_postgres(database_url).await?;
+    let pool = PgPool::connect(&database_url).await?;
 	info!("CONNECTED TO POSTGRES");
 
     // Initialize App State with connection pool
@@ -69,10 +74,11 @@ async fn main() -> Result<()>{
 
     initialize_cache(initial_authors, initial_posts).await;
 
-    let all_routes = all_routes(app_state)
+    let all_routes = all_routes(app_state.clone())
         .layer(middleware::map_response(main_response_mapper))
+        .layer(middleware::from_fn_with_state(app_state.clone(), web::middlewares::auth::mw_ctx_resolver))
 		.layer(CookieManagerLayer::new())
-        .fallback(handler_404);
+        .fallback_service(routes_static::serve_dir());
 
     
     info!("{:<12} - {addr}\n", "LISTENING");

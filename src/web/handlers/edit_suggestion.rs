@@ -1,7 +1,8 @@
 use axum::{extract::State, Extension, Json};
 use axum_extra::extract::WithRejection;
 
-use crate::{models::{custom_response::{CustomResponse, CustomResponseData}, edit_suggestion::{EditSuggestion, EditSuggestionForCreate}, error::{ServerError, ServerResult}, state::AppState}, utils::{auth::get_info_from_jwt, custom_extractor::ApiError}};
+use crate::{models::{edit_suggestion::{EditSuggestion, EditSuggestionForCreate}, state::AppState}, utils::{auth::get_info_from_jwt, custom_extractor::ApiError}};
+use crate::web::{custom_response::{CustomResponse, CustomResponseData}, error::{ServerError, ServerResult}};
 
 pub async fn handler_edit_suggestion_create(
 	State(app_state): State<AppState>,

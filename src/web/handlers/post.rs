@@ -1,7 +1,8 @@
 use axum::{Json, extract::{Path, State, Query}, Extension};
 use axum_extra::extract::WithRejection;
 
-use crate::{models::{error::{ServerResult, ServerError}, custom_response::{CustomResponse, CustomResponseData}, post::{Post, PostForCreate, self, PostParams, PostForEdit}, state::AppState}, utils::{custom_extractor::ApiError, auth::get_info_from_jwt}};
+use crate::{models::{post::{Post, PostForCreate, self, PostParams, PostForEdit}, state::AppState}, utils::{custom_extractor::ApiError, auth::get_info_from_jwt}};
+use crate::web::{error::{ServerResult, ServerError}, custom_response::{CustomResponse, CustomResponseData}};
 
 /// Handler to create a post
 pub async fn handler_post_create(

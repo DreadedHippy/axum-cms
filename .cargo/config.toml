@@ -13,6 +13,15 @@ RUST_LOG="axum_cms=debug"
 #   For deployed env, should be managed by container (e.g., Kubernetes)
 #   (e.g., Kubernetes).
 
+## -- Secrets
+# Keys and passwords below are for localhost dev ONLY.
+# e.g., "welcome" type of passwords.
+# i.e., Encryption not needed.
+
+SERVICE_DB_URL="postgres://app_user:dev_only_pwd@localhost:5433/app_db"
+
 ## -- ConfigMap
 
+# This will be relative to Cargo.toml
+# In deployed images, probably use absolute path
 SERVICE_WEB_FOLDER="web-folder/"
