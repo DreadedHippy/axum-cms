@@ -59,7 +59,7 @@ struct RequestLogLine {
 
 
 	// -- User and context attributes
-	user_id: Option<u64>,
+	user_id: Option<i64>,
 
 
 	// -- http request attributes

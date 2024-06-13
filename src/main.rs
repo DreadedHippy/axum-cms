@@ -52,6 +52,9 @@ async fn main() -> Result<()>{
             env::var("DEV_DATABASE_URL").expect("Env variable `DEV_DATABASE_URL` not found")
         }
     };
+
+    // Initialize AppState
+    let a_s = AppState::new().await?;
     
     // Declare host and port number
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));

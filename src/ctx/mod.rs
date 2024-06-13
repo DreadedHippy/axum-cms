@@ -1,16 +1,32 @@
+
+type CtxResult<T> = Result<T, CtxError>;
 #[derive(Clone, Debug)]
-pub struct Ctx {
-	user_id: u64
+pub enum CtxError {
+	CtxCannotNewRootCtx
 }
 
+#[derive(Clone, Debug)]
+pub struct Ctx {
+	user_id: i64
+}
+
+
 impl Ctx {
-	pub fn new(user_id: u64) -> Self {
-		Self {user_id}
+	pub fn root_ctx() -> Self {
+		Ctx {user_id: 0}
+	}
+	
+	pub fn new(user_id: i64) -> CtxResult<Self> {
+		if user_id == 0 {
+			Err(CtxError::CtxCannotNewRootCtx)
+		} else {
+			Ok( Self {user_id})
+		}
 	}
 }
 
 impl Ctx {
-	pub fn user_id(&self) -> u64 {
+	pub fn user_id(&self) -> i64 {
 		self.user_id
 	}
 }

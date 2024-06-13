@@ -35,5 +35,5 @@ impl Config {
 }
 
 fn get_env(name: &'static str) -> ServerResult<String> {
-		env::var(name).map_err(|_| ServerError::ConfigMissingEnv(name))
-	}
+	env::var(name).map_err(|_| ServerError::ConfigMissingEnv(name))
+}

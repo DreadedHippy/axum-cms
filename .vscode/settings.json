@@ -1,3 +1,7 @@
 {
-	"editor.inlayHints.enabled": "offUnlessPressed"
+	"editor.inlayHints.enabled": "offUnlessPressed",
+	"rust-analyzer.cargo.features": "all",
+	"cSpell.words": [
+		"sqlx"
+	]
 }

@@ -76,14 +76,14 @@ pub async fn mw_require_auth<B>(
 
 /// Parse token of format `user-[user-id].expiration.[signature]`
 /// Returns `(user_id, expiration, signature)`
-fn parse_token(token: String) -> ServerResult<(u64, String, String)> {
+fn parse_token(token: String) -> ServerResult<(i64, String, String)> {
 	let (_whole, user_id, exp, sign) = regex_captures!(
 		r#"^user-(\d+)\.(.+)\.(.+)"#, // Literal regex
 		&token
 	)
 	.ok_or(ServerError::AuthFailTokenWrongFormat)?;
 
-	let user_id = user_id.parse::<u64>().map_err(
+	let user_id = user_id.parse::<i64>().map_err(
 		|_| ServerError::AuthFailTokenWrongFormat
 	)?;
 
