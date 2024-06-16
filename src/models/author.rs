@@ -23,7 +23,7 @@ pub struct Author {
 	pub password: String
 }
 
-#[derive(Deserialize, Debug, FromRow)]
+#[derive(Deserialize, Debug)]
 /// Struct holding fields required from client to create an author in the database
 pub struct AuthorForCreate {
 	pub name: String,

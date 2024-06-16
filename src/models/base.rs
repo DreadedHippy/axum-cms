@@ -18,7 +18,7 @@ pub trait DbBmc {
 pub async fn create<MC, E>(_ctx: &Ctx, app_state: &AppState, data: E) -> ModelResult<i64> 
 where
 	MC: DbBmc,
-	E: for<'r> FromRow<'r, PgRow> + Unpin + Send + SqlFields,
+	E: Unpin + Send + SqlFields,
 {
 	
 	let db = app_state.db();
