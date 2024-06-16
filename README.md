@@ -57,7 +57,7 @@ ALTER DATABASE postgres SET log_statement = 'all';
 cargo watch -q -c -x "test -- -- nocapture"
 
 # Specific test with filter
-cargo watch -q -c -x "test::model::author::tests::test_create_ok"
+cargo watch -q -c -x "test models::author::tests::test_create_ok"
 ```
 
 ## Notes

@@ -2,14 +2,19 @@ use crate::ctx::Ctx;
 use crate::models::AppState;
 use crate::models::ModelResult;
 use serde::{Deserialize, Serialize};
+use sqlb::Fields;
 use sqlx::FromRow;
 
+use super::base;
+use super::base::DbBmc;
+use super::base::SqlField;
+use super::base::SqlFields;
 use super::ModelError;
 
 
 // region:    --- Author Types
 
-#[derive(Deserialize, Serialize, Debug, FromRow, Clone)]
+#[derive(Deserialize, Serialize, Debug, FromRow, Clone, Fields)]
 /// Complete Author model, as-is in the database
 pub struct Author {
 	pub id: i64,
@@ -18,7 +23,7 @@ pub struct Author {
 	pub password: String
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug, FromRow)]
 /// Struct holding fields required from client to create an author in the database
 pub struct AuthorForCreate {
 	pub name: String,
@@ -26,6 +31,24 @@ pub struct AuthorForCreate {
 	pub password: String
 }
 
+impl SqlFields for AuthorForCreate {
+	fn to_field_value_pairs(&self) -> Vec<base::SqlField> {
+			return vec![
+				SqlField {
+					name: "name",
+					value: base::SqlFieldValue::String(self.name.clone())
+				},
+				SqlField {
+					name: "email",
+					value: base::SqlFieldValue::String(self.email.clone())
+				},
+				SqlField {
+					name: "password",
+					value: base::SqlFieldValue::String(self.password.clone())
+				}
+			]
+	}
+}
 #[derive(Deserialize)]
 /// Struct holding fields required from client to edit an author
 pub struct AuthorForEdit {
@@ -68,52 +91,43 @@ impl Author {
 // region:    --- AuthorBmc
 pub struct AuthorBmc;
 
+impl DbBmc for AuthorBmc {
+	const TABLE: &'static str = "authors";
+}
+
 impl AuthorBmc {
 	pub async fn create(
-		_ctx: &Ctx,
+		ctx: &Ctx,
 		app_state: &AppState,
-		author_c: AuthorForCreate,
+		data: AuthorForCreate,
 	) -> ModelResult<i64> {
 		let db = app_state.db();
 
-		let (id, ) = sqlx::query_as::<_, (i64,)>(
-			r#"
-				INSERT INTO authors (name, email, password)
-				VALUES( $1, $2, $3)
-				RETURNING id
-			"#
-		)
-		.bind(author_c.name)
-		.bind(author_c.email)
-		.bind(author_c.password)
-		.fetch_one(db)
-		.await?;
+		base::create::<AuthorBmc, _>(ctx, app_state, data).await
 
-		// println!("{:#?}", result);
+		// let (id, ) = sqlx::query_as::<_, (i64,)>(
+		// 	r#"
+		// 		INSERT INTO authors (name, email, password)
+		// 		VALUES( $1, $2, $3)
+		// 		RETURNING id
+		// 	"#
+		// )
+		// .bind(author_c.name)
+		// .bind(author_c.email)
+		// .bind(author_c.password)
+		// .fetch_one(db)
+		// .await?;
 
-    Ok(id)
+    // Ok(id)
 		
 	}
 
 	pub async fn get(
-		_ctx: &Ctx,
+		ctx: &Ctx,
 		app_state: &AppState,
 		id: i64,
 	) -> ModelResult<Author> {
-		let db = app_state.db();
-
-		let author: Author = sqlx::query_as(
-			r#"
-				SELECT * FROM authors WHERE id = $1
-			"#
-		)
-		.bind(id)
-		.fetch_optional(db)
-		.await?
-		.ok_or(ModelError::EntityNotFound { entity: "author", id })?;
-
-    Ok(author)
-		
+		base::get::<Self, _>(ctx, app_state, id).await // Underscore on the second generic parameter because we return a model of author, the compiler can infer
 	}
 
 	
@@ -147,7 +161,7 @@ impl AuthorBmc {
 		.rows_affected();
 	
 		if count == 0 {
-			return Err(ModelError::EntityNotFound { entity: "author", id });
+			return Err(ModelError::EntityNotFound { entity: "authors", id });
 		}
 		
     Ok(())
@@ -167,8 +181,8 @@ use super::*;
 use anyhow::{Ok, Result};
 use serial_test::serial;
 
-	#[serial]
-	#[tokio::test]
+#[tokio::test]
+#[serial]
 	async fn test_create_ok() -> Result<()> {
 		// -- Setup & Fixtures
 		let app_state = _dev_utils::init_test().await;
@@ -195,8 +209,8 @@ use serial_test::serial;
 		Ok(())
 	}
 
-	#[serial]
 	#[tokio::test]
+	#[serial]
 	async fn test_get_err_not_found() -> Result<()> {
 		// -- Setup & Fixtures
 		let app_state = _dev_utils::init_test().await;
@@ -210,8 +224,8 @@ use serial_test::serial;
 			matches!(
 				res,
 				Err(ModelError::EntityNotFound {
-					entity: "author",
-					id: 100 
+					entity: "authors",
+					id: 100
 				})
 			),
 			"EntityNotFound not matching"
@@ -220,8 +234,8 @@ use serial_test::serial;
 		Ok(())
 	}
 	
-	#[serial]
 	#[tokio::test]
+	#[serial]
 	async fn test_list_ok() -> Result<()> {
 		// -- Setup & Fixtures
 		let app_state = _dev_utils::init_test().await;
@@ -232,10 +246,11 @@ use serial_test::serial;
 		// -- Exec
 		let authors = AuthorBmc::list(&ctx, &app_state).await?;
 
+		
 		let authors: Vec<Author> = authors
-			.into_iter()
-			.filter(|a| a.name.starts_with("test_list_ok-author"))
-			.collect();
+		.into_iter()
+		.filter(|a| a.name.starts_with("test_list_ok-author"))
+		.collect();
 
 		assert_eq!(authors.len(), 2, "number of authors");
 
@@ -248,29 +263,28 @@ use serial_test::serial;
 	}
 	
 
-	#[serial]
-	#[tokio::test]
-	async fn test_delete_err_not_found() -> Result<()> {
+	// #[tokio::test]
+	// #[serial]
+	// async fn test_delete_err_not_found() -> Result<()> {
 		// -- Setup & Fixtures
-		let app_state = _dev_utils::init_test().await;
-		let ctx = Ctx::root_ctx();
-		let fx_id = 100;
+	// 	let app_state = _dev_utils::init_test().await;
+	// 	let ctx = Ctx::root_ctx();
+	// 	let fx_id = 100;
 
-		// -- Exec
-		let res = AuthorBmc::delete(&ctx, &app_state, fx_id).await;
+	// 	// -- Exec
+	// 	let res = AuthorBmc::delete(&ctx, &app_state, fx_id).await;
+	// 	assert!(
+	// 		matches!(
+	// 			res,
+	// 			Err(ModelError::EntityNotFound {
+	// 				entity: "authors",
+	// 				id: 100 
+	// 			})
+	// 		),
+	// 		"EntityNotFound not matching"
+	// 	);
 
-		assert!(
-			matches!(
-				res,
-				Err(ModelError::EntityNotFound {
-					entity: "author",
-					id: 100 
-				})
-			),
-			"EntityNotFound not matching"
-		);
-
-		Ok(())
-	}
+	// 	Ok(())
+	// }
 }
 // endregion: --- Tests

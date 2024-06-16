@@ -18,9 +18,9 @@
 //!
 
 // region:    --- Modules
-
-pub mod error;
-pub mod store;
+mod base;
+mod error;
+mod store;
 pub mod state;
 pub mod author;
 pub mod post;
