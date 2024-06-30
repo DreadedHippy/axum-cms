@@ -13,12 +13,19 @@ pub enum ModelError {
 
 	// -- Externals
 	Sqlx(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
+	SeaQuery(#[serde_as(as = "DisplayFromStr")] sea_query::error::Error)
 }
 
 // region:    --- Froms
 impl From<sqlx::Error> for ModelError {
 	fn from(val: sqlx::Error) -> Self {
 		Self::Sqlx(val)
+	}
+}
+
+impl From<sea_query::error::Error> for ModelError {
+	fn from(val: sea_query::error::Error) -> Self {
+		Self::SeaQuery(val)
 	}
 }
 

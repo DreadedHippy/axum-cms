@@ -2,13 +2,11 @@ use crate::ctx::Ctx;
 use crate::models::AppState;
 use crate::models::ModelResult;
 use serde::{Deserialize, Serialize};
-use sqlb::Fields;
+use modql::field::Fields;
 use sqlx::FromRow;
 
 use super::base;
 use super::base::DbBmc;
-use super::base::SqlField;
-use super::base::SqlFields;
 use super::ModelError;
 
 
@@ -23,7 +21,7 @@ pub struct Author {
 	pub password: String
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Fields)]
 /// Struct holding fields required from client to create an author in the database
 pub struct AuthorForCreate {
 	pub name: String,
@@ -31,25 +29,7 @@ pub struct AuthorForCreate {
 	pub password: String
 }
 
-impl SqlFields for AuthorForCreate {
-	fn to_field_value_pairs(&self) -> Vec<base::SqlField> {
-			return vec![
-				SqlField {
-					name: "name",
-					value: base::SqlFieldValue::String(self.name.clone())
-				},
-				SqlField {
-					name: "email",
-					value: base::SqlFieldValue::String(self.email.clone())
-				},
-				SqlField {
-					name: "password",
-					value: base::SqlFieldValue::String(self.password.clone())
-				}
-			]
-	}
-}
-#[derive(Deserialize)]
+#[derive(Deserialize, Fields)]
 /// Struct holding fields required from client to edit an author
 pub struct AuthorForEdit {
 	pub name: Option<String>,
