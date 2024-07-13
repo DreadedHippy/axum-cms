@@ -12,7 +12,7 @@ pub async fn handler_post_create(
 	) -> ServerResult<Json<CustomResponse<Post>>>{
 	let (_, author_id) = get_info_from_jwt(token)?;
 
-	let result = app_state.create_post(post_info, author_id).await.map_err(|e| {
+	let result = app_state.create_post(post_info).await.map_err(|e| {
 		ServerError::CouldNotCreatePost
 	})?;
 

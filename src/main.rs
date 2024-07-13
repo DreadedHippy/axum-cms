@@ -12,11 +12,13 @@ use tracing_subscriber::EnvFilter;
 use utils::{main_response_mapper, connect_to_postgres, cache::{create_redis_connection, initialize_cache}};
 
 mod config;
+mod crypt;
 mod web;
 mod utils;
 mod models;
 mod ctx;
 mod log;
+mod error;
 
 pub mod _dev_utils;
 

@@ -15,26 +15,29 @@ pub async fn handler_login(
 	) -> ServerResult<Json<CustomResponse<AuthorForResult>>>{
 	debug!(" {:<12} - api_login", "HANDLER");
 
-	// Check for author in DB
-	let author_from_db = app_state.get_author_by_email(payload.email).await.map_err(|_| ServerError::CouldNotGetAuthor)?;
+	// // Check for author in DB
+	// let author_from_db = app_state.get_author_by_email(payload.email).await.map_err(|_| ServerError::CouldNotGetAuthor)?;
 
 
-	// Confirm password match
-	if let Ok(false) = verify_hash(payload.password, &author_from_db.password) {
-		return Err(ServerError::LoginFail)
-	}
+	// // Confirm password match
+	// if let Ok(false) = verify_hash(payload.password, &author_from_db.password) {
+	// 	return Err(ServerError::LoginFail)
+	// }
 	
-	// Create jwt
-	let jwt = create_jwt(author_from_db.email.clone(), author_from_db.id)?;
+	// // Create jwt
+	// let jwt = create_jwt(author_from_db.email.clone(), author_from_db.id)?;
 
-	// Set auth header cookie
-	cookies.add(Cookie::new(AUTHORIZATION_HEADER, format!("Bearer {}", jwt)));
+	// // Set auth header cookie
+	// cookies.add(Cookie::new(AUTHORIZATION_HEADER, format!("Bearer {}", jwt)));
 
 	// Return successful message
 	let response = CustomResponse::<AuthorForResult> {
 		status: true,
 		message: Some(format!("Logged in Successfully")),
-		data: Some(CustomResponseData::Item(AuthorForResult::from(author_from_db)))
+		// data: Some(CustomResponseData::Item(AuthorForResult::from(author_from_db)))
+		// !breaking
+		data: None
+
 	};
 
 	Ok(Json(response))

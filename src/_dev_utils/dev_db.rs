@@ -2,6 +2,8 @@ use std::{fs, path::PathBuf, time::Duration};
 use tracing::info;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
+use crate::{ctx::Ctx, models::{author::{Author, AuthorBmc}, state::AppState}};
+
 type Db = Pool<Postgres>;
 
 //* NOTE: Hardcode to prevent deployed system db update;
@@ -11,6 +13,9 @@ const PG_DEV_APP_URL: &str = "postgres://app_user:dev_only_pwd@localhost:5433/ap
 // sql files
 const SQL_RECREATE_DB: &str = "sql/dev_initial/00-recreate-db.sql";
 const SQL_DIR: &str = "sql/dev_initial";
+
+const DEMO_PWD: &str = "password";
+
 
 pub async fn init_dev_db() -> Result<(), Box<dyn std::error::Error>> {
 	info!("{:<12} - init_dev_db()", "FOR DEV ONLY");
@@ -41,11 +46,26 @@ pub async fn init_dev_db() -> Result<(), Box<dyn std::error::Error>> {
 		}
 	}
 
+	// -- Init model layer
+	let app_state = AppState::new().await?;
+	let ctx = Ctx::root_ctx();
+
+	// -- Set genesis pwd
+	let genesis_author: Author = AuthorBmc::first_by_email(&ctx, &app_state, "e@mail")
+		.await?
+		.unwrap();
+
+	AuthorBmc::update_pwd(&ctx, &app_state, genesis_author.id, DEMO_PWD).await?;
+
+	info!("{:<12} - init_dev_db - set genesis pwd", "FOR-DEV-ONLY");
+
+
+	
 	Ok(())
 }
 
 async fn pexec(db: &Db, file: &str) -> Result<(), sqlx::Error> {
-	info!("{:<12} - pexec: {file}", "FOR DEV ONLY");
+	info!("{:<12} - pexec: {file}", "FOR-DEV-ONLY");
 
 	// -- Read file
 	let content = fs::read_to_string(file)?; // works because sqlx::Error impls from std::io;

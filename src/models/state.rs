@@ -139,7 +139,7 @@ impl AppState {
 impl AppState {
 	// region: --Database Manipulations for posts
 	/// Create a post in the database via SQLX
-	pub async fn create_post(&self, post_info: PostForCreate, author_id: i64) -> Result<Post, Error>{
+	pub async fn create_post(&self, post_info: PostForCreate) -> Result<Post, Error>{
 		let q = r#"
 		INSERT INTO posts (title, content, author_id)
 		VALUES( $1, $2, $3)
@@ -149,7 +149,7 @@ impl AppState {
 		let rec = sqlx::query(q)
 		.bind(post_info.title)
 		.bind(post_info.content)
-		.bind(author_id)
+		.bind(post_info.author_id)
 		.fetch_one(&self.pool)
 		.await?;
 

@@ -2,13 +2,13 @@ use axum::{response::IntoResponse, http::StatusCode, extract::rejection::JsonRej
 use serde::Serialize;
 use serde_json::{json, Value};
 use tracing::debug;
+
+use crate::models;
 pub type ServerResult<T> = core::result::Result<T, ServerError>;
 
 /// Custom error enum, holding errors encountered during request handling
 #[derive(Debug, Clone, strum_macros::AsRefStr, Serialize)]
 pub enum ServerError {
-	// -- Config
-	ConfigMissingEnv(&'static str),
 
 	LoginFail, // Due to invalid credentials
 

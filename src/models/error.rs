@@ -1,4 +1,4 @@
-use crate::models::store;
+use crate::{crypt, models::store};
 use serde::Serialize;
 use serde_with::{serde_as, DisplayFromStr};
 
@@ -8,7 +8,9 @@ pub type ModelResult<T> = core::result::Result<T, ModelError>;
 #[derive(Debug, Serialize)]
 pub enum ModelError {
 	EntityNotFound { entity: &'static str, id: i64 },
+
 	// -- Modules
+	Crypt(crypt::CryptError),
 	Store(store::StoreError),
 
 	// -- Externals
@@ -17,6 +19,18 @@ pub enum ModelError {
 }
 
 // region:    --- Froms
+impl From<crypt::CryptError> for ModelError {
+	fn from(val: crypt::CryptError) -> Self {
+		Self::Crypt(val)
+	}
+}
+
+impl From<store::StoreError> for ModelError {
+	fn from(val: store::StoreError) -> Self {
+		Self::Store(val)
+	}
+}
+
 impl From<sqlx::Error> for ModelError {
 	fn from(val: sqlx::Error) -> Self {
 		Self::Sqlx(val)
@@ -26,12 +40,6 @@ impl From<sqlx::Error> for ModelError {
 impl From<sea_query::error::Error> for ModelError {
 	fn from(val: sea_query::error::Error) -> Self {
 		Self::SeaQuery(val)
-	}
-}
-
-impl From<store::StoreError> for ModelError {
-	fn from(val: store::StoreError) -> Self {
-		Self::Store(val)
 	}
 }
 // endregion: --- Froms
