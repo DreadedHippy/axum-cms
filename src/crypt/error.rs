@@ -8,7 +8,15 @@ pub enum CryptError {
 	KeyFailHmac,
 
 	// Pwd
-	PwdNotMatching
+	PwdNotMatching,
+
+	// Token
+	TokenInvalidFormat,
+	TokenCannotDecodeIdent,
+	TokenCannotDecodeExp,
+	TokenSignatureNotMatching,
+	TokenExpNotIso,
+	TokenExpired
 }
 
 // region:    --- Error Boilerplate

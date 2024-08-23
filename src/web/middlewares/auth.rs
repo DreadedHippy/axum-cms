@@ -1,96 +1,83 @@
-use axum::{ extract::{FromRequestParts, State}, http::{request::Parts, Request}, middleware::Next, response::Response};
-use async_trait::async_trait;
-use lazy_regex::regex_captures;
-use tower_cookies::{Cookies, Cookie};
-use tracing::debug;
-use crate::{web::error::{ServerError, ServerResult}, models::state::AppState, utils::auth::is_jwt_valid};
-use crate::web::middlewares::AUTHORIZATION_HEADER;
+use crate::crypt::token::{validate_web_token, Token};
 use crate::ctx::Ctx;
+use crate::models::author::{AuthorBmc, AuthorForAuth};
+use crate::models::state::AppState;
+use crate::web::{set_token_cookie, AUTH_TOKEN};
+use crate::web::{ServerError, ServerResult};
+use async_trait::async_trait;
+use axum::extract::{FromRequestParts, State};
+use axum::http::request::Parts;
+use axum::http::Request;
+use axum::middleware::Next;
+use axum::response::Response;
+use serde::Serialize;
+use tower_cookies::{Cookie, Cookies};
+use tracing::debug;
 
-use super::AUTH_TOKEN;
-
-pub async fn mw_ctx_resolver<B>(
-	_mc: State<AppState>,
-	cookies: Cookies,
-	mut req:  Request<B>,
-	next: Next<B>
-) -> ServerResult<Response> {
-	debug!("{:<12} - mw_ctx_resolver", "MIDDLEWARE");
-
-	let auth_token = cookies.get(AUTH_TOKEN).map(|c| c.value().to_string());
-
-	let result_ctx = match auth_token
-		.ok_or(ServerError::AuthFailNoAuthTokenCookie)
-		.and_then(parse_token)
-	{
-			Ok((user_id, exp, sign)) => {
-				// TODO: Token components validation.
-				Ok(Ctx::new(user_id))
-			},
-			Err(e) => {
-				Err(e)
-			}
-	};
-
-	// Remove the cookie if something went wrong other than no cookie
-	if result_ctx.is_err() && matches!(result_ctx, Err(ServerError::AuthFailNoAuthTokenCookie)) {
-		// cookies.remove(Cookie::named(AUTH_TOKEN))	
-		cookies.remove(Cookie::named(AUTH_TOKEN))
-	}
-
-	// Store the ctx_result in the request extension.
-	req.extensions_mut().insert(result_ctx);
-	Ok(next.run(req).await)
-}
-
-/// Middleware to require authentication before accessing handler
-pub async fn mw_require_auth<B>(
+#[allow(dead_code)] // For now, until we have the rpc.
+pub async fn mw_ctx_require<B>(
 	ctx: ServerResult<Ctx>,
-	mut req: Request<B>,
-	next: Next<B>
-) -> ServerResult<Response>{
-	println!("{:<12} - mw_require_auth", "MIDDLEWARE");
-	
+	req: Request<B>,
+	next: Next<B>,
+) -> ServerResult<Response> {
+	debug!("{:<12} - mw_ctx_require - {ctx:?}", "MIDDLEWARE");
+
 	ctx?;
 
 	Ok(next.run(req).await)
 }
-// 	// TODO: Real auth-token parsing & validation.
-// 	let auth_token = auth_cookie.ok_or(ServerError::AuthFailNoAuthTokenCookie)?;
-// 	let cookie_info = auth_token.split_whitespace().map(String::from).collect::<Vec<String>>();
 
-// 	if cookie_info[0] != "Bearer" {
-// 		return Err(ServerError::AuthFailNoAuthTokenCookie)
-// 	}
-	
-// 	if let Some(jwt) = cookie_info.get(1) {
-// 		is_jwt_valid(jwt)?;
-// 	} else {
-// 		return Err(ServerError::AuthFailNoAuthTokenCookie)
-// 	}
+pub async fn mw_ctx_resolve<B>(
+	mm: State<AppState>,
+	cookies: Cookies,
+	mut req: Request<B>,
+	next: Next<B>,
+) -> ServerResult<Response> {
+	debug!("{:<12} - mw_ctx_resolve", "MIDDLEWARE");
 
-// 	req.extensions_mut().insert(cookie_info[1].clone());
+	let ctx_ext_result = _ctx_resolve(mm, &cookies).await;
 
-// 	Ok(next.run(req).await)
-// }
+	if ctx_ext_result.is_err()
+		&& !matches!(ctx_ext_result, Err(CtxExtError::TokenNotInCookie))
+	{
+		cookies.remove(Cookie::named(AUTH_TOKEN))
+	}
 
-/// Parse token of format `user-[user-id].expiration.[signature]`
-/// Returns `(user_id, expiration, signature)`
-fn parse_token(token: String) -> ServerResult<(i64, String, String)> {
-	let (_whole, user_id, exp, sign) = regex_captures!(
-		r#"^user-(\d+)\.(.+)\.(.+)"#, // Literal regex
-		&token
-	)
-	.ok_or(ServerError::AuthFailTokenWrongFormat)?;
+	// Store the ctx_ext_result in the request extension
+	// (for Ctx extractor).
+	req.extensions_mut().insert(ctx_ext_result);
 
-	let user_id = user_id.parse::<i64>().map_err(
-		|_| ServerError::AuthFailTokenWrongFormat
-	)?;
-
-	Ok((user_id, exp.to_string(), sign.to_string()))
+	Ok(next.run(req).await)
 }
 
+async fn _ctx_resolve(app_state: State<AppState>, cookies: &Cookies) -> CtxExtResult {
+	// -- Get Token String
+	let token = cookies
+		.get(AUTH_TOKEN)
+		.map(|c| c.value().to_string())
+		.ok_or(CtxExtError::TokenNotInCookie)?;
 
+	// -- Parse Token
+	let token: Token = token.parse().map_err(|_| CtxExtError::TokenWrongFormat)?;
+
+	// -- Get UserForAuth
+	let author: AuthorForAuth =
+		AuthorBmc::first_by_email(&Ctx::root_ctx(), &app_state, &token.ident)
+			.await
+			.map_err(|ex| CtxExtError::ModelAccessError(ex.to_string()))?
+			.ok_or(CtxExtError::UserNotFound)?;
+
+	// -- Validate Token
+	validate_web_token(&token, &author.token_salt.to_string())
+		.map_err(|_| CtxExtError::FailValidate)?;
+
+	// -- Update Token
+	set_token_cookie(cookies, &author.email, &author.token_salt.to_string())
+		.map_err(|_| CtxExtError::CannotSetTokenCookie)?;
+
+	// -- Create CtxExtResult
+	Ctx::new(author.id).map_err(|ex| CtxExtError::CtxCreateFail(ex.to_string()))
+}
 
 // region:    --- Ctx Extractor
 #[async_trait]
@@ -101,13 +88,29 @@ impl<S: Send + Sync> FromRequestParts<S> for Ctx {
 		debug!("{:<12} - Ctx", "EXTRACTOR");
 
 		parts
-		.extensions
-		.get::<ServerResult<Ctx>>()
-		.ok_or(ServerError::AuthFailCtxNotInRequestExt)?
-		.clone()
-	
+			.extensions
+			.get::<CtxExtResult>()
+			.ok_or(ServerError::CtxExt(CtxExtError::CtxNotInRequestExt))?
+			.clone()
+			.map_err(ServerError::CtxExt)
 	}
 }
-
-
 // endregion: --- Ctx Extractor
+
+// region:    --- Ctx Extractor Result/Error
+type CtxExtResult = core::result::Result<Ctx, CtxExtError>;
+
+#[derive(Clone, Serialize, Debug)]
+pub enum CtxExtError {
+	TokenNotInCookie,
+	TokenWrongFormat,
+
+	UserNotFound,
+	ModelAccessError(String),
+	FailValidate,
+	CannotSetTokenCookie,
+
+	CtxNotInRequestExt,
+	CtxCreateFail(String),
+}
+// endregion: --- Ctx Extractor Result/Error

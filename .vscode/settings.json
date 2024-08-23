@@ -10,5 +10,7 @@
 		"Iden",
 		"idens",
 		"sqlx"
-	]
+	],
+
+	"workspaceKeybindings.isRust": true
 }

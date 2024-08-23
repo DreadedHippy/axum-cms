@@ -1,10 +1,6 @@
+mod error;
 
-type CtxResult<T> = Result<T, CtxError>;
-#[derive(Clone, Debug)]
-pub enum CtxError {
-	CtxCannotNewRootCtx
-}
-
+pub use self::error::{CtxError, CtxResult};
 #[derive(Clone, Debug)]
 pub struct Ctx {
 	user_id: i64

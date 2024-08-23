@@ -42,7 +42,8 @@ difference = "2.0"
 lazy-regex = "2"
 async-trait = "0.1"
 strum_macros = "0.24"
-uuid  = {version = "1", features = ["v4", "fast-rng"]}
+uuid = {version = "1", features = ["v4", "fast-rng"]}
+time = "0.3"
 
 
 [dev-dependencies]
