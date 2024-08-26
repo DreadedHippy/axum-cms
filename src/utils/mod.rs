@@ -17,7 +17,6 @@ use crate::log::log_request;
 
 pub mod auth;
 pub mod cache;
-pub mod custom_extractor;
 pub mod error;
 
 pub use self::error::{UtilError, UtilResult};

@@ -27,10 +27,10 @@ CREATE TYPE EDIT_STATUS AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED');
 -- Edits
 CREATE TABLE "edits" (
 	post_id BIGINT NOT NULL,
-	author_id BIGINT NOT NULL,
+	editor_id BIGINT NOT NULL,
 	status EDIT_STATUS NOT NULL DEFAULT 'PENDING'::EDIT_STATUS,
 	new_content text NOT NULL,
 	FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE SET NULL,
-	FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE SET NULL,
-	PRIMARY KEY (author_id, post_id)
+	FOREIGN KEY (editor_id) REFERENCES authors(id) ON DELETE SET NULL,
+	PRIMARY KEY (editor_id, post_id)
 );

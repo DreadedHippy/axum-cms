@@ -27,7 +27,7 @@ pub struct PostForCreate {
 
 #[derive(Deserialize, Debug, Fields)]
 /// Struct holding fields required from client to edit a post
-pub struct PostForEdit {
+pub struct PostForUpdate {
 	pub title: Option<String>,
 	pub content: Option<String>
 }
@@ -69,12 +69,12 @@ impl PostBmc {
 		base::get::<Self, _>(ctx, app_state, id).await // Underscore on the second generic parameter because we return a model of author, the compiler can infer
 	}
 
-	pub async fn list(ctx: &Ctx, app_state: &AppState) -> ModelResult<Vec<Post>> {
-		base::list::<Self, _>(ctx, app_state).await
+	pub async fn list(app_state: &AppState) -> ModelResult<Vec<Post>> {
+		base::list_no_auth::<Self, _>(app_state).await
 	}
 
 	
-	pub async fn update(ctx: &Ctx, app_state: &AppState, id: i64, post_e: PostForEdit) -> ModelResult<()> {
+	pub async fn update(ctx: &Ctx, app_state: &AppState, id: i64, post_e: PostForUpdate) -> ModelResult<()> {
 		base::update::<Self, _>(ctx, app_state, id, post_e).await
 	}
 
@@ -167,7 +167,7 @@ mod tests {
 		_dev_utils::seed_posts(&ctx, &app_state, fx_posts).await?;
 
 		// -- Exec
-		let posts = PostBmc::list(&ctx, &app_state).await?;
+		let posts = PostBmc::list(&app_state).await?;
 		// println!("{:?}", posts);
 
 		
@@ -230,7 +230,7 @@ mod tests {
 			&ctx,
 			&app_state,
 			fx_post.id,
-			PostForEdit {
+			PostForUpdate {
 				title: Some(fx_info_new.0.to_string()),
 				content: Some(fx_info_new.1.to_string())
 			}

@@ -11,11 +11,11 @@ use serde_json::{json, Value};
 use tower_cookies::{Cookie, Cookies};
 use tracing::debug;
 
-pub fn routes(mm: AppState) -> Router {
+pub fn routes(app_state: AppState) -> Router {
 	Router::new()
 		.route("/api/login", post(api_login_handler))
 		.route("/api/logoff", post(api_logoff_handler))
-		.with_state(mm)
+		.with_state(app_state)
 }
 
 // region:    --- Login

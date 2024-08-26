@@ -114,6 +114,29 @@ where
 }
 
 
+pub async fn list_no_auth<MC, E>(app_state: &AppState) -> ModelResult<Vec<E>> 
+where
+	MC: DbBmc, // ModelController implements DbBmc
+	E: for<'r> FromRow<'r, PgRow> + Unpin + Send, // Entity implements FromRow
+	E: HasFields
+{
+
+	let db = app_state.db();
+
+	// -- Build Query
+	let mut query = Query::select();
+	query.from(MC::table_ref()).columns(E::field_column_refs());
+	
+	// -- Execute Query
+	let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
+	let entities = sqlx::query_as_with::<_, E, _>(&sql, values)
+		.fetch_all(db)
+		.await?;
+
+	Ok(entities)
+}
+
+
 pub async fn update<MC, E>(
 	_ctx: &Ctx, 
 	app_state: &AppState, 

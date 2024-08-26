@@ -14,7 +14,8 @@ use serde::Serialize;
 use tower_cookies::{Cookie, Cookies};
 use tracing::debug;
 
-#[allow(dead_code)] // For now, until we have the rpc.
+#[allow(dead_code)]
+/// Requires the `Ctx`` be present in incoming requests
 pub async fn mw_ctx_require<B>(
 	ctx: ServerResult<Ctx>,
 	req: Request<B>,
