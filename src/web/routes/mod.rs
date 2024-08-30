@@ -2,7 +2,7 @@ use axum::{extract::State, http::StatusCode, middleware, response::IntoResponse,
 use sqlx::{Pool, Postgres};
 use tower_cookies::CookieManagerLayer;
 
-use crate::web::{handlers::{auth::{handler_login, handler_signup}, author::{handler_author_edit, handler_author_list, handler_author_get}, edit_suggestion::handler_edit_suggestion_create, hello::{handler_hello, handler_hello_2}, post::{handler_post_create, handler_post_delete, handler_post_update}}, middlewares::{self, cache::{mw_get_cached_authors, mw_get_cached_posts}}};
+use crate::web::{handlers::{author::{handler_author_edit, handler_author_list, handler_author_get}, edit_suggestion::handler_edit_suggestion_create, hello::{handler_hello, handler_hello_2}, post::{handler_post_create, handler_post_delete, handler_post_update}}, middlewares::{self, cache::{mw_get_cached_authors, mw_get_cached_posts}}};
 use crate::models::state::AppState;
 
 use super::{handlers::post::{handler_post_get, handler_post_list}, middlewares::auth::mw_ctx_require};

@@ -2,6 +2,7 @@ use crate::crypt::{pwd, EncryptContent};
 use crate::ctx::Ctx;
 use crate::models::author::{Author, AuthorBmc, AuthorForCreate, AuthorForLogin};
 use crate::models::state::AppState;
+use crate::web::custom_response::CustomResponse;
 use crate::web::error::CrudError;
 use crate::web::{self, remove_token_cookie, ServerError, ServerResult};
 use axum::extract::State;
@@ -14,7 +15,7 @@ use tower_cookies::{Cookie, Cookies};
 use tracing::debug;
 
 use super::auth::SignupPayload;
-use super::IncomingServerRequest;
+use super::{IncomingServerRequest, ServerResponse};
 
 pub fn routes(app_state: AppState) -> Router {
 	Router::new()
@@ -29,7 +30,7 @@ async fn api_login_handler(
 	State(app_state): State<AppState>,
 	cookies: Cookies,
 	Json(payload): Json<LoginPayload>,
-) -> ServerResult<Json<Value>> {
+) -> ServerResponse<()> {
 	debug!("{:<12} - api_login_handler", "HANDLER");
 
 	let LoginPayload {
@@ -63,22 +64,31 @@ async fn api_login_handler(
 	web::set_token_cookie(&cookies, &author.email, &author.token_salt.to_string())?;
 
 	// Create the success body.
-	let body = Json(json!({
-		"result": {
-			"success": true
-		}
-	}));
+	let body = Json(
+		CustomResponse::<()>::new(
+			true,
+			Some("Logged in successfully".to_string()),
+			None
+		)
+	);
 
 	Ok(body)
 }
 
 
-// region:    --- Login
+#[derive(Debug, Deserialize)]
+struct LoginPayload {
+	email: String,
+	password: String,
+}
+// endregion: --- Login
+
+// region:    --- Signup
 async fn api_signup_handler(
 	State(app_state): State<AppState>,
 	cookies: Cookies,
 	WithRejection(Json(payload), _): IncomingServerRequest<SignupPayload>,
-) -> ServerResult<Json<Value>> {
+) -> ServerResponse<()> {
 	debug!("{:<12} - api_signup_handler", "HANDLER");
 
 	let SignupPayload {
@@ -116,27 +126,25 @@ async fn api_signup_handler(
 	AuthorBmc::update_pwd(&ctx, &app_state, author_id, &pwd_clear).await?;
 
 	// Create the success body.
-	let body = Json(json!({
-		"result": {
-			"success": true
-		}
-	}));
+	let body = Json(
+		CustomResponse::<()>::new(
+			true,
+			Some("Signed up successfully".to_string()),
+			None
+		)
+	);
+	
 
 	Ok(body)
 }
 
-#[derive(Debug, Deserialize)]
-struct LoginPayload {
-	email: String,
-	password: String,
-}
-// endregion: --- Login
+// endregion: --- Signup
 
 // region:    --- Logoff
 async fn api_logoff_handler(
 	cookies: Cookies,
 	Json(payload): Json<LogoffPayload>,
-) -> ServerResult<Json<Value>> {
+) -> ServerResponse<()> {
 	debug!("{:<12} - api_logoff_handler", "HANDLER");
 	let should_logoff = payload.logoff;
 
@@ -145,11 +153,13 @@ async fn api_logoff_handler(
 	}
 
 	// Create the success body.
-	let body = Json(json!({
-		"result": {
-			"logged_off": should_logoff
-		}
-	}));
+	let body = Json(
+		CustomResponse::<()>::new(
+			true,
+			Some("Logged off successfully".to_string()),
+			None
+		)
+	);
 
 	Ok(body)
 }
