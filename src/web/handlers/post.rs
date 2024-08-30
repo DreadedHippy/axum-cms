@@ -2,7 +2,7 @@ use axum::{Json, extract::{Path, State, Query}, Extension};
 use axum_extra::extract::WithRejection;
 use tracing::debug;
 
-use crate::{ctx::Ctx, models::{post::{self, Post, PostBmc, PostForCreate, PostForUpdate, PostParams}, state::AppState}, utils::auth::get_info_from_jwt, web::{IncomingServerRequest, ServerResponse}};
+use crate::{ctx::Ctx, models::{post::{self, Post, PostBmc, PostForCreate, PostForUpdate, PostParams}, state::AppState}, utils::auth::get_info_from_jwt, web::{error::CrudError, IncomingServerRequest, ServerResponse}};
 use crate::web::custom_extractor::ApiError;
 use crate::web::{error::{ServerResult, ServerError}, custom_response::{CustomResponse, CustomResponseData}};
 
@@ -71,10 +71,23 @@ pub async fn handler_post_update(
 	WithRejection((Json(post_e)), _): IncomingServerRequest<PostForUpdate>
 	) -> ServerResponse<Post> {
 	debug!("{:<12} - handler_post_update", "HANDLER");
+	let post = PostBmc::get(&ctx, &app_state, id).await?;
+
+	let author_id = ctx.user_id();
+
+	if post.author_id != author_id {
+		return Err(
+			ServerError::UpdateFail(
+				"Post".to_string(),
+				"Only post author can update post".to_string(),
+				CrudError::UNAUTHORIZED
+			)
+		)
+	}
 
 	let _result = PostBmc::update(&ctx, &app_state, id, post_e).await?;
 
-	let post = PostBmc::get(&ctx, &app_state, id).await?;	
+	let post = PostBmc::get(&ctx, &app_state, id).await?;
 
 	let response  = CustomResponse::new(
 		true,

@@ -2,6 +2,7 @@ use axum::{response::IntoResponse, http::StatusCode, extract::rejection::JsonRej
 use serde::Serialize;
 use serde_json::{json, Value};
 use tracing::debug;
+use std::string::ToString;
 
 use crate::{crypt, models, web};
 pub type ServerResult<T> = core::result::Result<T, ServerError>;
@@ -11,14 +12,28 @@ use super::*;
 #[derive(Debug, strum_macros::AsRefStr, Serialize)]
 pub enum ServerError {
 
-	LoginFail,
+	// -- Signup
+	/// SignupFail(`Reason`)
+	SignupFail(String),
+
 	// -- Login
+	LoginFail,
 	LoginFailEmailNotFound,
 	LoginFailAuthorHasNoPwd {author_id: i64},
 	LoginFailPwdNotMatching {author_id: i64},
 
 	// -- CtxExtError
 	CtxExt(middlewares::auth::CtxExtError),
+
+	// -- CRUD errors
+	///? CRUD Type (Model, Reason, Status code)
+	CreateFail(String, String, CrudError),
+	///? CRUD Type (Model, Reason, Status code)
+	ReadFail(String, String, CrudError),
+	/// CRUD Type (`Model`, `Reason`, `Status code`)
+	UpdateFail(String, String, CrudError),
+	///? CRUD Type (Model, Reason, Status code)
+	DeleteFail(String, String, CrudError),
 
 	// region: -- Auth errors.
 
@@ -127,8 +142,15 @@ impl ServerError {
 	pub fn client_status_and_error(&self) -> (StatusCode, ClientError) {
 		use web::ServerError::*;
 
-		#[allow(unreachable_patterns)]
+		// #[allow(unreachable_patterns)]
 		match self {
+
+			// -- Signup
+			SignupFail(_) => {
+				(StatusCode::INTERNAL_SERVER_ERROR, ClientError::SERVICE_ERROR)
+			},
+
+
 			// -- Login
 			LoginFailEmailNotFound
 			| LoginFailAuthorHasNoPwd { .. }
@@ -138,6 +160,21 @@ impl ServerError {
 
 			// -- Auth
 			CtxExt(_) => (StatusCode::FORBIDDEN, ClientError::NO_AUTH),
+
+			// -- Crud
+			CreateFail(model_name, reason, crud_error) => {
+				let status_code: StatusCode = crud_error.into();
+				let error_message = format!("{} create failed, {}", model_name, reason);
+
+				(status_code, ClientError::CUSTOM(error_message))
+			},
+			
+			UpdateFail(model_name, reason, crud_error) => {
+				let status_code: StatusCode = crud_error.into();
+				let error_message = format!("{} update failed, {}", model_name, reason);
+
+				(status_code, ClientError::CUSTOM(error_message))
+			},
 
 			// -- Fallback.
 			_ => (
@@ -150,6 +187,7 @@ impl ServerError {
 
 
 // region:    --- ServerError Boilerplate
+
 impl core::fmt::Display for ServerError {
 	fn fmt(
 		&self,
@@ -160,8 +198,11 @@ impl core::fmt::Display for ServerError {
 }
 
 impl std::error::Error for ServerError {}
+
 // endregion: --- ServerError Boilerplate
 
+
+// region:   --- Client Error
 
 #[derive(Debug, strum_macros::AsRefStr)]
 #[allow(non_camel_case_types)]
@@ -169,5 +210,30 @@ pub enum ClientError {
 	LOGIN_FAIL,
 	NO_AUTH,
 	SERVICE_ERROR,
+	// #[strum(to_string = "{0}")]
+	CUSTOM(String)
 }
+
 // endregion: --- Client Error
+
+// region:    --- CRUD Error codes
+#[derive(Debug, strum_macros::AsRefStr, Serialize)]
+#[allow(non_camel_case_types)]
+pub enum CrudError {
+	FORBIDDEN,
+	BAD_REQUEST,
+	UNAUTHORIZED,
+	CONFLICT
+}
+
+impl From<&CrudError> for StatusCode {
+	fn from(value: &CrudError) -> Self {
+		match value {
+			CrudError::BAD_REQUEST => StatusCode::BAD_REQUEST,
+			CrudError::FORBIDDEN => StatusCode::FORBIDDEN,
+			CrudError::UNAUTHORIZED => StatusCode::UNAUTHORIZED,
+			CrudError::CONFLICT => StatusCode::CONFLICT,
+		}
+	}
+}
+// endregion: --- CRUD Error codes

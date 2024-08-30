@@ -42,7 +42,7 @@ pub struct AuthorForEdit {
 	pub name: Option<String>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, FromRow, Clone, Fields)]
 /// Struct holding fields to be sent to the client as a resulting Author
 pub struct AuthorForResult {
 	pub id: i64,
@@ -86,6 +86,7 @@ pub trait AuthorBy: HasFields + for<'r> FromRow<'r, PgRow> + Unpin + Send {}
 impl AuthorBy for Author {}
 impl AuthorBy for AuthorForLogin {}
 impl AuthorBy for AuthorForAuth {}
+impl AuthorBy for AuthorForResult {}
 
 #[derive(Iden)]
 enum AuthorIden {
@@ -114,6 +115,15 @@ impl AuthorBmc {
 		base::create::<AuthorBmc, _>(ctx, app_state, data).await
 	}
 
+	pub async fn create_no_auth(
+		app_state: &AppState,
+		data: AuthorForCreate,
+	) -> ModelResult<i64> {
+		let db = app_state.db();
+
+		base::create_no_auth::<AuthorBmc, _>(app_state, data).await
+	}
+
 	pub async fn get<E>(
 		ctx: &Ctx,
 		app_state: &AppState,
@@ -125,8 +135,18 @@ impl AuthorBmc {
 		base::get::<Self, _>(ctx, app_state, id).await // Underscore on the second generic parameter because we return a model of author, the compiler can infer
 	}
 
+	pub async fn get_no_auth<E>(
+		app_state: &AppState,
+		id: i64,
+	) -> ModelResult<E>
+	where
+		E: AuthorBy
+	{
+		base::get_no_auth::<Self, _>(app_state, id).await // Underscore on the second generic parameter because we return a model of author, the compiler can infer
+	}
+
 	pub async fn first_by_email<E>(
-		ctx: &Ctx,
+		// ctx: &Ctx,
 		app_state: &AppState,
 		email: &str,
 	) -> ModelResult<Option<E>>
@@ -186,8 +206,8 @@ impl AuthorBmc {
 		Ok(())
 	}
 
-	pub async fn list(ctx: &Ctx, app_state: &AppState) -> ModelResult<Vec<Author>> {
-		base::list::<Self, _>(ctx, app_state).await // Underscore on the second generic parameter because we return a model of author, the compiler can infer
+	pub async fn list(app_state: &AppState) -> ModelResult<Vec<Author>> {
+		base::list_no_auth::<Self, _>(app_state).await // Underscore on the second generic parameter because we return a model of author, the compiler can infer
 	}
 
 	pub async fn update(ctx: &Ctx, app_state: &AppState, id: i64, author_e: AuthorForEdit) -> ModelResult<()> {
@@ -361,7 +381,7 @@ use serial_test::serial;
 			let ctx = Ctx::root_ctx();
 			let fx_email = "e@mail";
 
-			let author: Author = AuthorBmc::first_by_email(&ctx, &app_state, fx_email)
+			let author: Author = AuthorBmc::first_by_email(&app_state, fx_email)
 				.await?
 				.context("Should have user 'Genesis'")?;
 

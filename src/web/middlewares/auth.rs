@@ -63,7 +63,7 @@ async fn _ctx_resolve(app_state: State<AppState>, cookies: &Cookies) -> CtxExtRe
 
 	// -- Get UserForAuth
 	let author: AuthorForAuth =
-		AuthorBmc::first_by_email(&Ctx::root_ctx(), &app_state, &token.ident)
+		AuthorBmc::first_by_email(&app_state, &token.ident)
 			.await
 			.map_err(|ex| CtxExtError::ModelAccessError(ex.to_string()))?
 			.ok_or(CtxExtError::UserNotFound)?;

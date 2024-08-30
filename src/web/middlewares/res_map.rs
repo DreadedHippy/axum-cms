@@ -1,6 +1,7 @@
 use crate::ctx::Ctx;
 use crate::log::log_request;
-use crate::web;
+use crate::web::{self, ClientError};
+use crate::web::custom_response::CustomResponse;
 use axum::http::{Method, Uri};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
@@ -26,16 +27,24 @@ pub async fn main_response_mapper(
 		client_status_error
 			.as_ref()
 			.map(|(status_code, client_error)| {
-				let client_error_body = json!({
-					"error": {
-						"type": client_error.as_ref(),
-						"req_uuid": uuid.to_string(),
-					}
-				});
+
+				
+				let error_msg = match client_error {
+					// TODO: Fix `strum(to_string)` not working on `CUSTOM` variant
+					ClientError::CUSTOM(m) => m, // Destructure if custom error message
+					k => k.as_ref()
+				};
+
+				let client_error_body = CustomResponse::<()>::new(
+					false,
+					Some(error_msg.to_string()),
+					None
+				);
 
 				debug!("CLIENT ERROR BODY:\n{client_error_body}");
 
 				// Build the new response from the client_error_body
+
 				(*status_code, Json(client_error_body)).into_response()
 			});
 

@@ -26,6 +26,7 @@ pub mod author;
 pub mod post;
 pub mod edit_suggestion;
 
+use serde::Serialize;
 use state::AppState;
 
 pub use self::error::{ModelError, ModelResult};

@@ -51,7 +51,7 @@ pub async fn init_dev_db() -> Result<(), Box<dyn std::error::Error>> {
 	let ctx = Ctx::root_ctx();
 
 	// -- Set genesis pwd
-	let genesis_author: Author = AuthorBmc::first_by_email(&ctx, &app_state, "e@mail")
+	let genesis_author: Author = AuthorBmc::first_by_email(&app_state, "e@mail")
 		.await?
 		.unwrap();
 
