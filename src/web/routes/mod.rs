@@ -21,15 +21,11 @@ fn routes_author(app_state: AppState) -> Router {
 	Router::new()
 		.route(
 			"/author",
-			// post(handler_author_create).route_layer(middleware::from_fn(middlewares::auth::mw_require_auth))
 			get(handler_author_list)
 		)
 		.route("/author/:id",
 			get(handler_author_get)
 		)
-		// .route("/author/:id",
-		// 	patch(handler_author_edit).route_layer(middleware::from_fn(mw_require_auth))
-		// )
 		.with_state(app_state)
 }
 
