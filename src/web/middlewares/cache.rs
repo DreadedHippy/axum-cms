@@ -4,11 +4,12 @@ use axum::middleware::Next;
 use axum::response::{Response, IntoResponse};
 use redis::AsyncCommands;
 
+use crate::ctx::Ctx;
 use crate::models::author::{Author, AuthorForResult};
-use crate::models::custom_response::{CustomResponse, CustomResponseData};
+use crate::web::custom_response::{CustomResponse, CustomResponseData};
 use crate::models::post::Post;
 use crate::utils::cache::create_redis_connection;
-use crate::models::error::{ServerResult, ServerError};
+use crate::web::error::{ServerResult, ServerError};
 
 /// Middleware to get cached posts
 pub async fn mw_get_cached_posts<B>(

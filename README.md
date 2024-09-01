@@ -16,14 +16,14 @@ A simple production-ready backend server template for Content Management Systems
 - POST `/login`: Login with email and password
 - GET `/author`: get all authors
 - GET `/author/:id`: Get specific author.
-- PATCH `/author/:id`: Edit specific author.
+<!-- - PATCH `/author/:id`: Edit specific author. -->
 
 - GET `/post`: Get all posts
 - GET `/post/:id`: Get specific post
 - PATCH `/post/:id`: Edit specific post
 - DELETE `/post/:id`: Delete specific post
 
-## Instructions
+<!-- ## Instructions
 1. Create a .env file in your local copy of the repository, and set the following env variables
 	- `PROD_DATABASE_URL`: Your postgres database for production
 	- `DEV_DATABASE_URL`: Your postgres database for development
@@ -52,12 +52,21 @@ ALTER DATABASE postgres SET log_statement = 'all';
 3. Run `cargo run` in your terminal to compile and run your project.
 4. To deploy to docker, run the deploy script with the command `./deploy.sh` in the project directory
 
-## Notes
+## Unit Tests
+```sh
+cargo watch -q -c -x "test -- -- nocapture"
+
+# Specific test with filter
+cargo watch -q -c -x "test models::author::tests::test_create_ok"
+``` -->
+
+<!-- ## Notes
 - **IMPORTANT!**: If you decide to change `DEV_DATABASE_URL`, edit the following files accordingly:
 	- `sql\dev_initial\00-recreate-db.sql`
 	- `src\_dev_utils\dev_db.rs`
 - Use the "WithRejection\<`CUSTOM_JSON_BODY`, ApiError>" as Json body type in order to enable JSON extraction errors
 - All errors can be found in `src/models/error.rs` in the `Error` enum. You may write custom responses for each error inside the `impl IntoResponse` block for the `Error` enum
+- All fixtures are prefixed with 'fx'
 - Tests are stored in: `/examples` folder 
 - Run the tests with the command: `cargo run --example {FILE_NAME}`, where `FILE_NAME` is the name of the file containing the test
-- With `cargo watch` installed, Re-run the test on each file save with the command: `cargo watch -q -c -w examples/ -x "run --example {FILE_NAME}"`, where `FILE_NAME` is the name of the file containing the test
+- With `cargo watch` installed, Re-run the test on each file save with the command: `cargo watch -q -c -w examples/ -x "run --example {FILE_NAME}"`, where `FILE_NAME` is the name of the file containing the test -->

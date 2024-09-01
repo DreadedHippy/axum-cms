@@ -4,7 +4,7 @@ use chrono::{Utc, Duration};
 use jsonwebtoken::{encode, Header, EncodingKey, crypto::verify, DecodingKey, decode, Validation, Algorithm, TokenData};
 use bcrypt;
 
-use crate::models::{auth::Claims, error::{ServerError, ServerResult}};
+use crate::web::{auth::Claims, {ServerError, ServerResult}};
 
 use super::JWT_DURATION_IN_SECONDS;
 /// Hash a password using bcrypt

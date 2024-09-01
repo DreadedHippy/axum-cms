@@ -1,36 +1,44 @@
 use std::fmt::format;
 
-use axum::{Extension, Json};
+use axum::{debug_handler, Extension, Json};
 use axum::extract::{Path, State};
 use axum_extra::extract::WithRejection;
-use tracing::info;
+use tracing::{debug, info};
 
-use crate::models::author::{Author, AuthorForCreate, AuthorForResult, AuthorForEdit};
-use crate::models::custom_response::{CustomResponse, CustomResponseData};
-use crate::models::error::{ServerResult, ServerError};
+use crate::ctx::Ctx;
+use crate::models::author::{Author, AuthorBmc, AuthorForCreate, AuthorForEdit, AuthorForResult};
+use crate::web::custom_response::{CustomResponse, CustomResponseData};
+use crate::web::error::{ServerResult, ServerError};
+use crate::web::custom_extractor::ApiError;
 use crate::models::state::AppState;
 use crate::utils::auth::{create_jwt, get_info_from_jwt};
-use crate::utils::custom_extractor::ApiError;
+use crate::web::{IncomingServerRequest, ServerResponse};
 
-// pub async fn handler_author_create(State(app_state): State<AppState>, Json(author_info): Json<AuthorForCreate>) -> ServerResult<Json<CustomResponse<AuthorForResult>>> {
-// 	debug!(" {:<12} - handler_author_create", "HANDLER");
-// 	let author = app_state.create_author(author_info).await.map_err(|e| Error::CouldNotCreateAuthor)?;
-// 	let jwt = create_jwt(author.email.clone())?;
+pub async fn handler_author_create(
+	State(app_state): State<AppState>,
+	WithRejection(Json(data), _): IncomingServerRequest<AuthorForCreate>
+) -> ServerResponse<AuthorForResult> {
+	debug!(" {:<12} - handler_author_create", "HANDLER");
 
-// 	let response = CustomResponse::<AuthorForResult>::new(
-// 		true,
-// 		Some(format!("Author Created")),
-// 		Some(CustomResponseData::Item(author))
-// 	);
+	let id = AuthorBmc::create_no_auth(&app_state, data).await?;
 
-// 	Ok(Json(response))
-// }
+	let author: AuthorForResult = AuthorBmc::get_no_auth(&app_state, id).await?;
 
-/// Handler to get all authors
-pub async fn handler_author_get_all(State(app_state): State<AppState>) -> ServerResult<Json<CustomResponse<AuthorForResult>>> {
-	println!("{:>12} - handler_author_get_all", "HANDLER");
+	let response = CustomResponse::<AuthorForResult>::new(
+		true,
+		Some(format!("Author Created")),
+		Some(CustomResponseData::Item(author))
+	);
 
-	let authors = app_state.get_all_authors().await.map_err(|e|  ServerError::CouldNotGetAuthors)?;
+	Ok(Json(response))
+}
+
+/// Handler to list all authors
+pub async fn handler_author_list(State(app_state): State<AppState>) -> ServerResponse<AuthorForResult> {
+	debug!("{:>12} - handler_author", "HANDLER");
+
+	let authors = AuthorBmc::list(&app_state).await?;
+	// let authors = app_state.get_all_authors().await.map_err(|e|  ServerError::CouldNotGetAuthors)?;
 	let authors = authors.into_iter().map(AuthorForResult::from).collect::<Vec<_>>();
 
 	let response = CustomResponse::<AuthorForResult>::new(
@@ -42,33 +50,26 @@ pub async fn handler_author_get_all(State(app_state): State<AppState>) -> Server
 	Ok(Json(response))
 }
 
-/// Handler to get a specific author
-pub async fn handler_author_get_specific(State(app_state): State<AppState>, Path(id): Path<i64>) -> ServerResult<Json<CustomResponse<AuthorForResult>>> {
+/// Handler to get an author
+pub async fn handler_author_get(State(app_state): State<AppState>, Path(id): Path<i64>) -> ServerResponse<AuthorForResult> {
+	debug!("{:>12} - handler_author", "HANDLER");
 
-	let author: Author = app_state.get_specific_author(id).await.map_err(|e| {
-		ServerError::CouldNotGetAuthor
-	})?;
-
-	// info!("Found speci")
-
-	let author_result = AuthorForResult {
-		id: author.id,
-		name: author.name,
-		email: author.email
-	};
+	let author: AuthorForResult = AuthorBmc::get_no_auth(&app_state, id).await?;
 
 	let response = CustomResponse::new(
 		true,
 		Some(format!("Author Retrieved")),
-		Some(CustomResponseData::Item(author_result))
+		Some(CustomResponseData::Item(author))
 	);
 
 	Ok(Json(response))
 }
 
 /// Handler to edit a specific author
+#[debug_handler]
 pub async fn handler_author_edit(
 	State(app_state): State<AppState>,
+	ctx: Ctx,
 	Extension(token): Extension<String>,
 	Path(id): Path<i64>,
 	WithRejection((Json(author)), _): WithRejection<Json<AuthorForEdit>, ApiError>
