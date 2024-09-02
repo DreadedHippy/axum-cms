@@ -10,6 +10,7 @@ A simple production-ready backend server template for Content Management Systems
 ## Information
 - Database used: Postgres
 - Cache used: Redis
+- In all `.sql` files, individual database statements should end with `;--#`, failure to do this may break dev database initialization
 
 ## Routes
 - POST `/signup`: Sign up with name, email, and password

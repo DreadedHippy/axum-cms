@@ -1,6 +1,10 @@
-use modql::field::Fields;
+use chrono::NaiveDateTime;
+use modql::{field::Fields, filter::{FilterNodes, ListOptions, OpValsInt64, OpValsString}};
+use serde_with::serde_as;
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use sqlx::FromRow;
 use serde::{Deserialize, Serialize};
+use time::PrimitiveDateTime;
 // use serial_test::*;
 
 use crate::ctx::Ctx;
@@ -8,13 +12,19 @@ use crate::ctx::Ctx;
 use super::{base::{self, DbBmc}, state::AppState, ModelResult};
 
 
-#[derive(Deserialize, Serialize, Debug, FromRow, Fields)]
+// #[derive(Deserialize, Serialize, Debug, FromRow, Fields)]
+#[serde_as]
+#[derive(Debug, Clone, Fields, FromRow, Serialize, Deserialize)]
 /// Complete Post model, as-is in the database
 pub struct Post {
 	pub id: i64,
 	pub title: String,
 	pub content: String,
-	pub author_id: i64
+	pub author_id: i64,
+	#[serde_as(as = "Rfc3339")]
+	pub created_at: OffsetDateTime,
+	#[serde_as(as = "Rfc3339")]
+	pub updated_at: OffsetDateTime
 }
 
 #[derive(Deserialize, Debug, Fields)]
@@ -31,18 +41,13 @@ pub struct PostForUpdate {
 	pub title: Option<String>,
 	pub content: Option<String>
 }
-#[derive(Debug, Deserialize)]
-/// Struct holding request parameters accepted by `post/:id` route
-pub struct PostParams {
-	pub author: Option<String> // The author's email
-}
+#[derive(FilterNodes, Deserialize, Default)]
+pub struct PostFilter {
+	id: Option<OpValsInt64>,
 
-
-impl Post {
-	/// Create a new post functionally
-	pub fn new(title: String, content: String, author_id: i64) -> Self {
-		Self { id: 0, title, content, author_id }
-	}
+	title: Option<OpValsString>,
+	content: Option<OpValsString>,
+	author_id: Option<OpValsInt64>
 }
 
 pub struct PostBmc;
@@ -69,8 +74,12 @@ impl PostBmc {
 		base::get::<Self, _>(ctx, app_state, id).await // Underscore on the second generic parameter because we return a model of author, the compiler can infer
 	}
 
-	pub async fn list(app_state: &AppState) -> ModelResult<Vec<Post>> {
-		base::list_no_auth::<Self, _>(app_state).await
+	pub async fn list(
+		app_state: &AppState,
+		filters: Option<PostFilter>,
+		list_options: Option<ListOptions>
+	) -> ModelResult<Vec<Post>> {
+		base::list_no_auth::<Self, _, _>(app_state, filters, list_options).await
 	}
 
 	
@@ -167,7 +176,7 @@ mod tests {
 		_dev_utils::seed_posts(&ctx, &app_state, fx_posts).await?;
 
 		// -- Exec
-		let posts = PostBmc::list(&app_state).await?;
+		let posts = PostBmc::list(&app_state, None, None).await?;
 		// println!("{:?}", posts);
 
 		

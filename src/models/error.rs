@@ -1,48 +1,31 @@
 use crate::{crypt, models::store};
 use serde::Serialize;
 use serde_with::{serde_as, DisplayFromStr};
+use derive_more::{From, Display};
 
 pub type ModelResult<T> = core::result::Result<T, ModelError>;
 
 #[serde_as]
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, From)]
 pub enum ModelError {
 	EntityNotFound { entity: &'static str, id: i64 },
 
+	EntityAccessRequiresAuth,
+
 	// -- Modules
+	#[from]
 	Crypt(crypt::CryptError),
+	#[from]
 	Store(store::StoreError),
 
 	// -- Externals
+	#[from]
 	Sqlx(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
-	SeaQuery(#[serde_as(as = "DisplayFromStr")] sea_query::error::Error)
+	#[from]
+	SeaQuery(#[serde_as(as = "DisplayFromStr")] sea_query::error::Error),
+	#[from]
+	ModqlIntoSea(#[serde_as(as = "DisplayFromStr")] modql::filter::IntoSeaError)
 }
-
-// region:    --- Froms
-impl From<crypt::CryptError> for ModelError {
-	fn from(val: crypt::CryptError) -> Self {
-		Self::Crypt(val)
-	}
-}
-
-impl From<store::StoreError> for ModelError {
-	fn from(val: store::StoreError) -> Self {
-		Self::Store(val)
-	}
-}
-
-impl From<sqlx::Error> for ModelError {
-	fn from(val: sqlx::Error) -> Self {
-		Self::Sqlx(val)
-	}
-}
-
-impl From<sea_query::error::Error> for ModelError {
-	fn from(val: sea_query::error::Error) -> Self {
-		Self::SeaQuery(val)
-	}
-}
-// endregion: --- Froms
 
 // region:    --- Error Boilerplate
 impl core::fmt::Display for ModelError {
@@ -53,6 +36,8 @@ impl core::fmt::Display for ModelError {
 		write!(fmt, "{self:?}")
 	}
 }
+
+
 
 impl std::error::Error for ModelError {}
 // endregion: --- Error Boilerplate

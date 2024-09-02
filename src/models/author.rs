@@ -3,6 +3,7 @@ use crate::ctx::Ctx;
 use crate::models::AppState;
 use crate::models::{ModelResult, ModelError};
 use crate::models::base::{self, DbBmc};
+use modql::filter::{FilterNodes, ListOptions, OpValsInt64, OpValsString};
 use sea_query::{Expr, Iden, PostgresQueryBuilder, Query, SimpleExpr};
 use sea_query_binder::SqlxBinder;
 use serde::{Deserialize, Serialize};
@@ -93,6 +94,14 @@ enum AuthorIden {
 	Id,
 	Email,
 	Password
+}
+
+#[derive(FilterNodes, Deserialize, Default)]
+pub struct AuthorFilter {
+	id: Option<OpValsInt64>,
+
+	name: Option<OpValsString>,
+	email: Option<OpValsString>,
 }
 
 // endregion: --- Author Types
@@ -206,8 +215,8 @@ impl AuthorBmc {
 		Ok(())
 	}
 
-	pub async fn list(app_state: &AppState) -> ModelResult<Vec<Author>> {
-		base::list_no_auth::<Self, _>(app_state).await // Underscore on the second generic parameter because we return a model of author, the compiler can infer
+	pub async fn list(app_state: &AppState, filters: Option<AuthorFilter>, list_options: Option<ListOptions>) -> ModelResult<Vec<Author>> {
+		base::list_no_auth::<Self, _, _>(app_state, filters, list_options).await
 	}
 
 	pub async fn update(ctx: &Ctx, app_state: &AppState, id: i64, author_e: AuthorForEdit) -> ModelResult<()> {

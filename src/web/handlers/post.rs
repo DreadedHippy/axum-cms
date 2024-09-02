@@ -2,7 +2,7 @@ use axum::{Json, extract::{Path, State, Query}, Extension};
 use axum_extra::extract::WithRejection;
 use tracing::debug;
 
-use crate::{ctx::Ctx, models::{post::{self, Post, PostBmc, PostForCreate, PostForUpdate, PostParams}, state::AppState}, utils::auth::get_info_from_jwt, web::{error::CrudError, IncomingServerRequest, ServerResponse}};
+use crate::{ctx::Ctx, models::{post::{self, Post, PostBmc, PostForCreate, PostForUpdate}, state::AppState}, web::{error::CrudError, IncomingServerRequest, ServerResponse}};
 use crate::web::custom_extractor::ApiError;
 use crate::web::{error::{ServerResult, ServerError}, custom_response::{CustomResponse, CustomResponseData}};
 
@@ -34,7 +34,7 @@ pub async fn handler_post_list(
 	State(app_state): State<AppState>
 ) -> ServerResponse<Post> {
 	debug!("{:<12} - handler_post_list", "HANDLER");
-	let posts = PostBmc::list(&app_state).await?;
+	let posts = PostBmc::list(&app_state, None, None).await?;
 
 	let response = CustomResponse::new(
 		true,
