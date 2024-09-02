@@ -2,15 +2,16 @@ use axum::{extract::State, http::StatusCode, middleware, response::IntoResponse,
 use sqlx::{Pool, Postgres};
 use tower_cookies::CookieManagerLayer;
 
-use crate::web::{handlers::{author::{handler_author_edit, handler_author_list, handler_author_get}, edit_suggestion::handler_edit_suggestion_create, hello::{handler_hello, handler_hello_2}, post::{handler_post_create, handler_post_delete, handler_post_update}}, middlewares::{self, cache::{mw_get_cached_authors, mw_get_cached_posts}}};
+use crate::web::handlers::{author::{handler_author_list, handler_author_get}, hello::{handler_hello, handler_hello_2}, post::{handler_post_create, handler_post_delete, handler_post_update}};
 use crate::models::state::AppState;
 
-use super::{handlers::post::{handler_post_get, handler_post_list}, middlewares::auth::mw_ctx_require};
+use super::{handlers::{edit::handler_edit_create, post::{handler_post_get, handler_post_list}}, middlewares::auth::mw_ctx_require};
 
 pub fn routes_main(app_state: AppState) -> Router {
 	Router::new()
 		.merge(routes_post(app_state.clone()))
 		.merge(routes_author(app_state.clone()))
+		.merge(routes_edit(app_state.clone()))
 		// .nest("/edit-suggestion", router)
 		// .merge(routes_edit_suggestion(app_state.clone()))
 
@@ -49,6 +50,29 @@ fn routes_post(app_state: AppState) -> Router {
 			.delete(handler_post_delete)
 			.route_layer(middleware::from_fn(mw_ctx_require))
 		)
+		.with_state(app_state)
+}
+
+/// Handling of edits
+fn routes_edit(app_state: AppState) -> Router {
+	Router::new()
+		.route(
+			"/edit",
+			post(handler_edit_create)
+			.route_layer(middleware::from_fn(mw_ctx_require))
+		)
+		// .route(
+		// 	"/post",
+		// 	get(handler_post_list)
+		// )
+		// .route("/post/:id", 
+		// 	get(handler_post_get)
+		// )
+		// .route("/post/:id",
+		// 	patch(handler_post_update)
+		// 	.delete(handler_post_delete)
+		// 	.route_layer(middleware::from_fn(mw_ctx_require))
+		// )
 		.with_state(app_state)
 }
 

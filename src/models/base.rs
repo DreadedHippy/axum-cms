@@ -1,7 +1,9 @@
 use std::borrow::Borrow;
 use modql::field::HasFields;
-use modql::SIden; // "SIden" stands for "Static Identifier"
-use sea_query::{Expr, Iden, IntoIden, PostgresQueryBuilder, Query, TableRef};
+use modql::filter::{FilterGroups, ListOptions};
+use modql::SIden;
+// "SIden" stands for "Static Identifier"
+use sea_query::{Expr, Iden, IntoIden, PostgresQueryBuilder, Query, TableRef, Condition};
 use sea_query_binder::SqlxBinder;
 use crate::ctx::Ctx;
 use crate::models::AppState;
@@ -18,7 +20,11 @@ pub trait DbBmc {
 	fn table_ref() -> TableRef {
 		TableRef::Table(SIden(Self::TABLE).into_iden())
 	}
+
+
 }
+
+
 
 #[derive(Iden)]
 pub enum CommonIden {
@@ -97,31 +103,8 @@ where
 	E: for<'r> FromRow<'r, PgRow> + Unpin + Send, // Entity implements FromRow
 	E: HasFields
 {
-
-	let db = app_state.db();
-
-	// -- Build query
-	let mut query = Query::select();
-
-	query
-		.from(MC::table_ref())
-		.columns(E::field_column_refs())
-		.and_where(Expr::col(CommonIden::Id).eq(id));
-
-
-	// -- Execute query
-	let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
-	let entity = sqlx::query_as_with::<_, E, _>(&sql, values)
-		.fetch_optional(db)
-		.await?
-		.ok_or(ModelError::EntityNotFound {
-			entity: MC::TABLE,
-			id
-		})?;
-
-	
-
-	Ok(entity)
+	// The exact same functionality
+	get_no_auth::<MC, E>(app_state, id).await
 }
 
 
@@ -158,34 +141,26 @@ where
 	Ok(entity)
 }
 
-pub async fn list<MC, E>(_ctx: &Ctx, app_state: &AppState) -> ModelResult<Vec<E>> 
+pub async fn list<MC, E, F>(_ctx: &Ctx, app_state: &AppState, filter: Option<F>, list_options: Option<ListOptions>) -> ModelResult<Vec<E>>
 where
 	MC: DbBmc, // ModelController implements DbBmc
 	E: for<'r> FromRow<'r, PgRow> + Unpin + Send, // Entity implements FromRow
-	E: HasFields
+	E: HasFields,
+	F: Into<FilterGroups>,
 {
 
-	let db = app_state.db();
-
-	// -- Build Query
-	let mut query = Query::select();
-	query.from(MC::table_ref()).columns(E::field_column_refs());
-	
-	// -- Execute Query
-	let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
-	let entities = sqlx::query_as_with::<_, E, _>(&sql, values)
-		.fetch_all(db)
-		.await?;
-
-	Ok(entities)
+	// The exact same functionality
+	list_no_auth::<MC, E, F>(app_state, filter, list_options).await
 }
 
 
-pub async fn list_no_auth<MC, E>(app_state: &AppState) -> ModelResult<Vec<E>> 
+pub async fn list_no_auth<MC, E, F>(app_state: &AppState, filter: Option<F>, list_options: Option<ListOptions>) -> ModelResult<Vec<E>> 
 where
 	MC: DbBmc, // ModelController implements DbBmc
 	E: for<'r> FromRow<'r, PgRow> + Unpin + Send, // Entity implements FromRow
-	E: HasFields
+	E: HasFields,
+	F: Into<FilterGroups>,
+
 {
 
 	let db = app_state.db();
@@ -193,6 +168,19 @@ where
 	// -- Build Query
 	let mut query = Query::select();
 	query.from(MC::table_ref()).columns(E::field_column_refs());
+
+	// conditions from filters
+	if let Some(filter) = filter {
+		let filters: FilterGroups = filter.into();
+
+		let cond: Condition = filters.try_into()?;
+		query.cond_where(cond);
+	}
+
+	// list options
+	if let Some(list_options) = list_options {
+		list_options.apply_to_sea_query(&mut query)
+	}
 	
 	// -- Execute Query
 	let (sql, values) = query.build_sqlx(PostgresQueryBuilder);

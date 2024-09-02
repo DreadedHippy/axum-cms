@@ -9,7 +9,8 @@
 		"Hmac",
 		"Iden",
 		"idens",
-		"sqlx"
+		"sqlx",
+		"Vals"
 	],
 
 	"workspaceKeybindings.isRust": true

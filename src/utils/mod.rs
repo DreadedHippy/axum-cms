@@ -15,8 +15,8 @@ use crate::ctx::Ctx;
 use crate::web::ServerError;
 use crate::log::log_request;
 
-pub mod auth;
-pub mod cache;
+// pub mod auth;
+// pub mod cache;
 pub mod error;
 
 pub use self::error::{UtilError, UtilResult};

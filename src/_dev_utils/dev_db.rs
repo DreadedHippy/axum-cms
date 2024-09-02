@@ -71,7 +71,7 @@ async fn pexec(db: &Db, file: &str) -> Result<(), sqlx::Error> {
 	let content = fs::read_to_string(file)?; // works because sqlx::Error impls from std::io;
 
 	// FIXME: Make the split more sql proof
-	let sqls: Vec<&str> =  content.split(";").collect();
+	let sqls: Vec<&str> =  content.split(";--#").collect();
 
 	for sql in sqls {
 		sqlx::query(sql).execute(db).await?;

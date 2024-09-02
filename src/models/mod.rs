@@ -24,7 +24,7 @@ mod store;
 pub mod state;
 pub mod author;
 pub mod post;
-pub mod edit_suggestion;
+pub mod edit;
 
 use serde::Serialize;
 use state::AppState;

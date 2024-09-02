@@ -71,10 +71,21 @@ async fn main() -> Result<()> {
 	
 	req_create_post.print().await?;
 	
-	// -- Update post
 	let json_value = req_create_post.json_body()?;
 	let id = json_value.get("data").and_then(|value| value.get("id")).unwrap();
 
+	// -- Create edit
+	let req_create_edit = hc_auth_tester.do_post(
+		"/api/edit",
+		json!({
+			"post_id": id,
+			"new_content": "This is just a suggestion"
+		})
+	);
+
+	req_create_edit.await?.print().await?;
+	
+	// -- Update post
 	let update_route = format!("/api/post/{}", id);
 	let req_update_post = hc.do_patch(
 		&update_route,
