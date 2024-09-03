@@ -6,6 +6,7 @@ use crate::web::custom_response::CustomResponse;
 use crate::web::error::CrudError;
 use crate::web::{self, remove_token_cookie, ServerError, ServerResult};
 use axum::extract::State;
+use axum::http::StatusCode;
 use axum::routing::post;
 use axum::{Json, Router};
 use axum_extra::extract::WithRejection;
@@ -64,7 +65,7 @@ async fn api_login_handler(
 	web::set_token_cookie(&cookies, &author.email, &author.token_salt.to_string())?;
 
 	// Create the success body.
-	let body = Json(
+	let response = Json(
 		CustomResponse::<()>::new(
 			true,
 			Some("Logged in successfully".to_string()),
@@ -72,7 +73,7 @@ async fn api_login_handler(
 		)
 	);
 
-	Ok(body)
+	Ok((StatusCode::OK, response))
 }
 
 
@@ -126,7 +127,7 @@ async fn api_signup_handler(
 	AuthorBmc::update_pwd(&ctx, &app_state, author_id, &pwd_clear).await?;
 
 	// Create the success body.
-	let body = Json(
+	let response = Json(
 		CustomResponse::<()>::new(
 			true,
 			Some("Signed up successfully".to_string()),
@@ -135,7 +136,7 @@ async fn api_signup_handler(
 	);
 	
 
-	Ok(body)
+	Ok((StatusCode::CREATED, response))
 }
 
 // endregion: --- Signup
@@ -161,7 +162,7 @@ async fn api_logoff_handler(
 		)
 	);
 
-	Ok(body)
+	Ok((StatusCode::OK, body))
 }
 
 #[derive(Debug, Deserialize)]

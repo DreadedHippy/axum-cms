@@ -1,5 +1,6 @@
 use std::fmt::format;
 
+use axum::http::StatusCode;
 use axum::{debug_handler, Extension, Json};
 use axum::extract::{Path, State};
 use axum_extra::extract::WithRejection;
@@ -29,7 +30,7 @@ pub async fn handler_author_create(
 		Some(CustomResponseData::Item(author))
 	);
 
-	Ok(Json(response))
+	Ok((StatusCode::CREATED, Json(response)))
 }
 
 /// Handler to list all authors
@@ -44,7 +45,7 @@ pub async fn handler_author_list(State(app_state): State<AppState>) -> ServerRes
 		Some(CustomResponseData::Collection(authors))
 	);
 
-	Ok(Json(response))
+	Ok((StatusCode::OK, Json(response)))
 }
 
 /// Handler to get an author
@@ -59,5 +60,5 @@ pub async fn handler_author_get(State(app_state): State<AppState>, Path(id): Pat
 		Some(CustomResponseData::Item(author))
 	);
 
-	Ok(Json(response))
+	Ok((StatusCode::OK, Json(response)))
 }

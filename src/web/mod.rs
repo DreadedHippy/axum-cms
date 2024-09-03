@@ -1,6 +1,7 @@
 pub use self::error::ClientError;
 pub use self::error::{ServerError, ServerResult};
 use crate::crypt::token::generate_web_token;
+use axum::http::StatusCode;
 use axum::Json;
 use axum_extra::extract::WithRejection;
 use custom_extractor::ApiError;
@@ -16,7 +17,7 @@ pub mod custom_response;
 pub mod auth;
 pub mod routes_login;
 
-type ServerResponse<T> = ServerResult<Json<CustomResponse<T>>>;
+type ServerResponse<T> = ServerResult<(StatusCode, Json<CustomResponse<T>>)>;
 type IncomingServerRequest<T> =  WithRejection<Json<T>, ApiError>;
 
 #[derive(Debug)]

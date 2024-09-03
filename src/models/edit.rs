@@ -1,5 +1,5 @@
 use modql::{field::Fields, filter::{FilterGroups, FilterNodes, ListOptions, OpValsBool, OpValsInt64, OpValsString}};
-use sea_query::{Condition, Expr, Iden, PostgresQueryBuilder, Query};
+use sea_query::{Condition, Expr, Iden, Nullable, PostgresQueryBuilder, Query};
 use sea_query_binder::SqlxBinder;
 use serde_with::serde_as;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
@@ -42,6 +42,12 @@ impl From<EditStatus> for sea_query::Value {
 	}
 }
 
+impl Nullable for EditStatus {
+	fn null() -> sea_query::Value {
+		EditStatus::PENDING.into()
+	}
+}
+
 #[derive(Deserialize, Debug, Fields)]
 /// Struct holding fields required to create an edit suggestion in the database
 pub struct EditForCreate {
@@ -62,6 +68,7 @@ pub struct EditForCreateRequestBody {
 /// Struct holding fields required from client to edit an edit_suggestion
 pub struct EditForUpdate {
 	pub new_content: Option<String>,
+	pub status: Option<EditStatus>,
 }
 
 
@@ -118,10 +125,9 @@ impl EditBmc {
 		base::list::<Self, _, _>(ctx, app_state, filters, list_options).await
 	}
 	
-	pub async fn update(ctx: &Ctx, app_state: &AppState, id: i64, post_e: EditForUpdate) -> ModelResult<()> {
-		base::update::<Self, _>(ctx, app_state, id, post_e).await
+	pub async fn update(ctx: &Ctx, app_state: &AppState, id: i64, edit_e: EditForUpdate) -> ModelResult<()> {
+		base::update::<Self, _>(ctx, app_state, id, edit_e).await
 	}
-
 
 	pub async fn delete(
 		ctx: &Ctx,

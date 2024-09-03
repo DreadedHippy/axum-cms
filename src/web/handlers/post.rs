@@ -1,4 +1,4 @@
-use axum::{Json, extract::{Path, State, Query}, Extension};
+use axum::{extract::{Path, Query, State}, http::StatusCode, Extension, Json};
 use axum_extra::extract::WithRejection;
 use tracing::debug;
 
@@ -26,7 +26,7 @@ pub async fn handler_post_create(
 		Some(CustomResponseData::Item(post))
 	);
 
-	Ok(Json(response))
+	Ok((StatusCode::CREATED, Json(response)))
 }
 
 /// Handler to get every post from every author all at once
@@ -42,7 +42,7 @@ pub async fn handler_post_list(
 		Some(CustomResponseData::Collection(posts))
 	);
 
-	Ok(Json(response))
+	Ok((StatusCode::OK,  Json(response)))
 }
 
 // Handler to get a specific post
@@ -60,7 +60,7 @@ pub async fn handler_post_get(
 		Some(CustomResponseData::Item(post))
 	);
 
-	Ok(Json(response))
+	Ok((StatusCode::OK, Json(response)))
 }
 
 /// Handler to update a specific post
@@ -95,7 +95,7 @@ pub async fn handler_post_update(
 		Some(CustomResponseData::Item(post))
 	);
 
-	Ok(Json(response))
+	Ok((StatusCode::ACCEPTED, Json(response)))
 }
 
 /// Handler to delete a post
@@ -115,5 +115,5 @@ pub async fn handler_post_delete(
 		None
 	);
 
-	Ok(Json(response))
+	Ok((StatusCode::OK, Json(response)))
 }
