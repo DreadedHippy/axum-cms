@@ -21,19 +21,23 @@
 mod base;
 mod error;
 mod store;
-pub mod state;
 pub mod author;
 pub mod post;
 pub mod edit;
 
 use serde::Serialize;
-use state::AppState;
 
 pub use self::error::{ModelError, ModelResult};
 
 use crate::models::store::{new_db_pool, Db};
 
 // endregion: --- Modules
+
+#[derive(Clone)]
+/// Struct holding the application state
+pub struct AppState {
+	pub pool: Db
+}
 
 impl AppState {
 	/// Constructor

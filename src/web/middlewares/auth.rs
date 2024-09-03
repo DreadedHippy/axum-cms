@@ -1,7 +1,7 @@
 use crate::crypt::token::{validate_web_token, Token};
 use crate::ctx::Ctx;
 use crate::models::author::{AuthorBmc, AuthorForAuth};
-use crate::models::state::AppState;
+use crate::models::AppState;
 use crate::web::{set_token_cookie, AUTH_TOKEN};
 use crate::web::{ServerError, ServerResult};
 use async_trait::async_trait;

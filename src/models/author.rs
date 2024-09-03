@@ -8,18 +8,23 @@ use sea_query::{Expr, Iden, PostgresQueryBuilder, Query, SimpleExpr};
 use sea_query_binder::SqlxBinder;
 use serde::{Deserialize, Serialize};
 use modql::field::{Fields, HasFields};
+use serde_with::serde_as;
 use sqlx::postgres::PgRow;
 use sqlx::FromRow;
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use uuid::Uuid;
 
 // region:    --- Author Types
 
+#[serde_as]
 #[derive(Deserialize, Serialize, Debug, FromRow, Clone, Fields)]
 ///? [DEPRECATED] Complete Author model, as-is in the database
 pub struct Author {
 	pub id: i64,
 	pub name: String,
 	pub email: String,
+	#[serde_as(as = "Rfc3339")]
+	pub created_at: OffsetDateTime
 	// pub password: String
 }
 
@@ -43,23 +48,25 @@ pub struct AuthorForEdit {
 	pub name: Option<String>,
 }
 
-#[derive(Deserialize, Serialize, Debug, FromRow, Clone, Fields)]
-/// Struct holding fields to be sent to the client as a resulting Author
-pub struct AuthorForResult {
-	pub id: i64,
-	pub name: String,
-	pub email: String
-}
+// #[derive(Deserialize, Serialize, Debug, FromRow, Clone, Fields)]
+// /// Struct holding fields to be sent to the client as a resulting Author
+// pub struct AuthorForResult {
+// 	pub id: i64,
+// 	pub name: String,
+// 	pub email: String,
+// 	pub created_at
+// }
 
-impl From<Author> for AuthorForResult {
-	fn from(a: Author) -> Self{
-		Self {
-			id: a.id,
-			name: a.name,
-			email: a.email
-		}
-	}
-}
+// impl From<Author> for AuthorForResult {
+// 	fn from(a: Author) -> Self{
+// 		Self {
+// 			id: a.id,
+// 			name: a.name,
+// 			email: a.email,
+
+// 		}
+// 	}
+// }
 
 #[derive(Clone, FromRow, Fields, Debug)]
 pub struct AuthorForLogin { //? For login logic
@@ -87,7 +94,7 @@ pub trait AuthorBy: HasFields + for<'r> FromRow<'r, PgRow> + Unpin + Send {}
 impl AuthorBy for Author {}
 impl AuthorBy for AuthorForLogin {}
 impl AuthorBy for AuthorForAuth {}
-impl AuthorBy for AuthorForResult {}
+// impl AuthorBy for AuthorForResult {}
 
 #[derive(Iden)]
 enum AuthorIden {

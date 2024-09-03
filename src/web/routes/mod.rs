@@ -3,7 +3,7 @@ use sqlx::{Pool, Postgres};
 use tower_cookies::CookieManagerLayer;
 
 use crate::web::handlers::{author::{handler_author_list, handler_author_get}, hello::{handler_hello, handler_hello_2}, post::{handler_post_create, handler_post_delete, handler_post_update}};
-use crate::models::state::AppState;
+use crate::models::AppState;
 
 use super::{handlers::{edit::handler_edit_create, post::{handler_post_get, handler_post_list}}, middlewares::auth::mw_ctx_require};
 

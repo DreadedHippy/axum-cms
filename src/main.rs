@@ -3,7 +3,7 @@ use std::{net::SocketAddr, thread, env};
 use anyhow::Result;
 use axum::{middleware, response::Html, routing::get, Router, Server};
 use dotenv::dotenv;
-use models::state::AppState;
+use models::AppState;
 use web::{handlers::routes_static, middlewares::auth::{mw_ctx_require, mw_ctx_resolve}, routes::routes_main, routes_login};
 use sqlx::{PgPool, Pool, Postgres};
 use tower_cookies::CookieManagerLayer;

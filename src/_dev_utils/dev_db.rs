@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf, time::Duration};
 use tracing::info;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
-use crate::{ctx::Ctx, models::{author::{Author, AuthorBmc}, state::AppState}};
+use crate::{ctx::Ctx, models::{author::{Author, AuthorBmc}, AppState}};
 
 type Db = Pool<Postgres>;
 

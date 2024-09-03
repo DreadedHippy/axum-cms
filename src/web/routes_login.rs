@@ -1,7 +1,7 @@
 use crate::crypt::{pwd, EncryptContent};
 use crate::ctx::Ctx;
 use crate::models::author::{Author, AuthorBmc, AuthorForCreate, AuthorForLogin};
-use crate::models::state::AppState;
+use crate::models::AppState;
 use crate::web::custom_response::CustomResponse;
 use crate::web::error::CrudError;
 use crate::web::{self, remove_token_cookie, ServerError, ServerResult};

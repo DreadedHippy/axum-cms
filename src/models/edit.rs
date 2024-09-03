@@ -8,7 +8,7 @@ use sqlx::{prelude::Type, FromRow};
 
 use crate::ctx::Ctx;
 
-use super::{base::{self, DbBmc}, state::AppState, ModelResult};
+use super::{base::{self, DbBmc}, AppState, ModelResult};
 
 #[serde_as]
 #[derive(Debug, Clone, Deserialize, Serialize, FromRow, Fields)]
