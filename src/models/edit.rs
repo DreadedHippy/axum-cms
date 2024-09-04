@@ -1,5 +1,5 @@
-use modql::{field::Fields, filter::{FilterGroups, FilterNodes, ListOptions, OpValsBool, OpValsInt64, OpValsString}};
-use sea_query::{Condition, Expr, Iden, Nullable, PostgresQueryBuilder, Query};
+use modql::{field::Fields, filter::{FilterGroups, FilterNodes, ListOptions, OpValsBool, OpValsInt64, OpValsString, OpValsValue}};
+use sea_query::{error::Error, Alias, Condition, Expr, Iden, Nullable, PostgresQueryBuilder, Query};
 use sea_query_binder::SqlxBinder;
 use serde_with::serde_as;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
@@ -8,7 +8,7 @@ use sqlx::{prelude::Type, FromRow};
 
 use crate::ctx::Ctx;
 
-use super::{base::{self, DbBmc}, AppState, ModelResult};
+use super::{base::{self, DbBmc}, AppState, ModelError, ModelResult};
 
 #[serde_as]
 #[derive(Debug, Clone, Deserialize, Serialize, FromRow, Fields)]
@@ -28,13 +28,14 @@ pub struct Edit {
 
 /// Complete "Edit Status" enum as-is in the database
 // #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "edit_status")]
-#[derive(Clone, Debug, Deserialize, strum_macros::Display, Serialize, sqlx::Type)]
+#[derive(Clone, Debug, Deserialize, strum_macros::Display, Serialize, sqlx::Type, PartialEq)]
 #[sqlx(type_name = "edit_status")]
 pub enum EditStatus {
 	PENDING,
 	ACCEPTED,
 	REJECTED
 }
+
 
 impl From<EditStatus> for sea_query::Value {
 	fn from(val: EditStatus) -> Self {
@@ -86,14 +87,26 @@ pub struct EditFilter {
 	editor_id: Option<OpValsInt64>,
 	post_id: Option<OpValsInt64>,
 	new_content: Option<OpValsString>,
-	status: Option<OpValsBool>
+	status: Option<OpValsValue>
+}
+
+#[derive(Deserialize, Debug)]
+pub struct EditForAccept {
+	pub accept: bool
+}
+
+#[derive(Deserialize, Debug)]
+pub struct EditForReject {
+	pub reject: bool
 }
 
 #[derive(Iden)]
 enum EditIden {
 	Id,
 	PostId,
-	EditorId
+	EditorId,
+	NewContent,
+	Status
 }
 
 
@@ -126,7 +139,34 @@ impl EditBmc {
 	}
 	
 	pub async fn update(ctx: &Ctx, app_state: &AppState, id: i64, edit_e: EditForUpdate) -> ModelResult<()> {
-		base::update::<Self, _>(ctx, app_state, id, edit_e).await
+		let db = app_state.db();
+
+		let mut query = Query::update();
+
+		query.table(Self::table_ref());
+
+		if let Some(s) = edit_e.status {
+			query.value(EditIden::Status, Expr::val(s).as_enum(Alias::new("edit_status")));
+		}
+
+		if let Some(c) = edit_e.new_content {
+			query.value(EditIden::NewContent, c);
+		}
+		
+		query.and_where(Expr::col(EditIden::Id).eq(id));
+
+		let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
+		let count = sqlx::query_with(&sql, values)
+			.execute(db)
+			.await?
+			.rows_affected();
+
+		// -- Check result
+		if count == 0 {
+			Err(ModelError::EntityNotFound { entity: Self::TABLE, id })
+		} else {
+			Ok(())
+		}
 	}
 
 	pub async fn delete(

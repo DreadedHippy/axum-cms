@@ -12,6 +12,8 @@ pub enum ModelError {
 
 	EntityAccessRequiresAuth,
 
+	CouldNotParseTextIntoEnum,
+
 	// -- Modules
 	#[from]
 	Crypt(crypt::CryptError),

@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use serde_json::{json, Value};
+use tracing_subscriber::fmt::format;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -83,7 +84,47 @@ async fn main() -> Result<()> {
 		})
 	);
 
-	req_create_edit.await?.print().await?;
+	let req_create_edit = req_create_edit.await?;
+	
+	
+	req_create_edit.print().await?;
+
+	// -- List outgoing edits by `hc_auth_tester`
+	let req_list_outgoing_edits = hc_auth_tester.do_get(
+		"/api/edit/outgoing"
+	);
+
+	req_list_outgoing_edits.await?.print().await?;
+
+	// -- List incoming edits for `hc`
+	let req_list_incoming_edits = hc.do_get(
+		"/api/edit/incoming"
+	);
+
+	req_list_incoming_edits.await?.print().await?;
+
+	// -- Accept edit
+	let json_body = req_create_edit.json_body()?;
+	let edit_id = json_body.get("data").and_then(|value| value.get("id")).unwrap();
+	let accept_edit_route = format!("/api/edit/accept/{}", edit_id);
+	let req_accept_edit = hc.do_post(
+		&accept_edit_route,
+		json!({
+			"accept": true
+		})
+	);
+
+	req_accept_edit.await?.print().await?;
+
+	// -- Double Accept should fail
+	let req_accept_edit = hc.do_post(
+		&accept_edit_route,
+		json!({
+			"accept": true
+		})
+	);
+
+	req_accept_edit.await?.print().await?;
 	
 	// -- Update post
 	let update_route = format!("/api/post/{}", id);

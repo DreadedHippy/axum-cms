@@ -29,8 +29,10 @@ pub enum ServerError {
 	///? CRUD Type (Model, Reason, Status code)
 	CreateFail(String, String, CrudError),
 	///? CRUD Type (Model, Reason, Status code)
-	ReadFail(String, String, CrudError),
-	/// CRUD Type (`Model`, `Reason`, `Status code`)
+	ListFail(String, String, CrudError),
+	///? CRUD Type (Model, Reason, Status code)
+	GetFail(String, String, CrudError),
+	///? CRUD Type (`Model`, `Reason`, `Status code`)
 	UpdateFail(String, String, CrudError),
 	///? CRUD Type (Model, Reason, Status code)
 	DeleteFail(String, String, CrudError),
@@ -105,6 +107,7 @@ pub enum ServerError {
 	// -- Modules
 	Model(models::ModelError),
 	Crypt(crypt::CryptError),
+	SerdeJson(String),
 
 }
 
@@ -119,6 +122,12 @@ impl From<models::ModelError> for ServerError {
 impl From<crypt::CryptError> for ServerError {
 	fn from(val: crypt::CryptError) -> Self {
 		Self::Crypt(val)
+	}
+}
+
+impl From<serde_json::Error> for ServerError {
+	fn from(val: serde_json::Error) -> Self {
+		Self::SerdeJson(val.to_string())
 	}
 }
 // endregion: --- Froms
@@ -169,9 +178,30 @@ impl ServerError {
 				(status_code, ClientError::CUSTOM(error_message))
 			},
 			
+			ListFail(model_name, reason, crud_error) => {
+				let status_code: StatusCode = crud_error.into();
+				let error_message = format!("{}s list failed, {}", model_name, reason);
+
+				(status_code, ClientError::CUSTOM(error_message))
+			},
+			
+			GetFail(model_name, reason, crud_error) => {
+				let status_code: StatusCode = crud_error.into();
+				let error_message = format!("{} get failed, {}", model_name, reason);
+
+				(status_code, ClientError::CUSTOM(error_message))
+			},
+			
 			UpdateFail(model_name, reason, crud_error) => {
 				let status_code: StatusCode = crud_error.into();
 				let error_message = format!("{} update failed, {}", model_name, reason);
+
+				(status_code, ClientError::CUSTOM(error_message))
+			},
+			
+			DeleteFail(model_name, reason, crud_error) => {
+				let status_code: StatusCode = crud_error.into();
+				let error_message = format!("{} delete failed, {}", model_name, reason);
 
 				(status_code, ClientError::CUSTOM(error_message))
 			},
@@ -223,7 +253,8 @@ pub enum CrudError {
 	FORBIDDEN,
 	BAD_REQUEST,
 	UNAUTHORIZED,
-	CONFLICT
+	CONFLICT,
+	INTERNAL_SERVER_ERROR
 }
 
 impl From<&CrudError> for StatusCode {
@@ -233,6 +264,7 @@ impl From<&CrudError> for StatusCode {
 			CrudError::FORBIDDEN => StatusCode::FORBIDDEN,
 			CrudError::UNAUTHORIZED => StatusCode::UNAUTHORIZED,
 			CrudError::CONFLICT => StatusCode::CONFLICT,
+			CrudError::INTERNAL_SERVER_ERROR => StatusCode::INTERNAL_SERVER_ERROR
 		}
 	}
 }
