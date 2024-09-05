@@ -22,8 +22,9 @@ async fn main() -> Result<()> {
 	
 	req_login.await?.print().await?;
 	
-	// Initialize hc_auth_tester
+	// Initialize testers
 	let hc_auth_tester = httpc_test::new_client("http://localhost:3000")?;
+	let hc_auth_tester2 = httpc_test::new_client("http://localhost:3000")?;
 
 	let req_signup = hc_auth_tester.do_post(
 		"/api/signup", 
@@ -33,9 +34,24 @@ async fn main() -> Result<()> {
 			"name": "Genesis2"
 		})
 	);
+	
 
 	req_signup.await?.print().await?;
 
+
+	let req_signup = hc_auth_tester2.do_post(
+		"/api/signup", 
+		json!({
+			"email": "e@mail3",
+			"password": "password3",
+			"name": "Genesis3"
+		})
+	);
+	
+
+	req_signup.await?.print().await?;
+
+	// Check that double sign-up doesn't work
 	let req_signup = hc_auth_tester.do_post(
 		"/api/signup", 
 		json!({
@@ -48,6 +64,7 @@ async fn main() -> Result<()> {
 	req_signup.await?.print().await?;
 	
 
+	// Login testers
 	let req_login_t = hc_auth_tester.do_post(
 		"/api/login",
 		json!({
@@ -57,6 +74,16 @@ async fn main() -> Result<()> {
 	);
 
 	req_login_t.await?.print().await?;
+
+	let req_login_t2 = hc_auth_tester2.do_post(
+		"/api/login",
+		json!({
+			"email": "e@mail3",
+			"password": "password3",
+		}),
+	);
+
+	req_login_t2.await?.print().await?;
 
 	// -- Create post
 	let req_create_post = hc.do_post(
@@ -85,8 +112,96 @@ async fn main() -> Result<()> {
 	);
 
 	let req_create_edit = req_create_edit.await?;
+	req_create_edit.print().await?;
+	let json_body = req_create_edit.json_body()?;
+	let edit_id = json_body.get("data").and_then(|value| value.get("id")).unwrap();
 	
+	// -- Get created edit
+	let edit_id_route = format!("/api/edit/{}", edit_id);
+	// check that editor can retrieve edit
+	let req_get_edit = hc_auth_tester.do_get(
+		&edit_id_route
+	);
+
+	req_get_edit.await?.print().await?;
+
+	// check that author can retrieve edit
+	let req_get_edit = hc.do_get(
+		&edit_id_route
+	);
 	
+	req_get_edit.await?.print().await?;
+
+	// check that third party cannot retrieve edit
+	let req_get_edit = hc_auth_tester2.do_get(
+		&edit_id_route
+	);
+	
+	req_get_edit.await?.print().await?;
+
+	// -- Update created edit
+	// check that editor can update edit
+	let req_update_edit = hc_auth_tester.do_patch(
+		&edit_id_route,
+		json!({
+			"new_content": "This is just an updated suggestion"
+		})
+	);
+	
+	req_update_edit.await?.print().await?;
+
+	// check that post author cannot update edit
+	let req_update_edit = hc.do_patch(
+		&edit_id_route,
+		json!({
+			"new_content": "This is just an updated suggestion"
+		})
+	);
+	
+	req_update_edit.await?.print().await?;
+
+	// check that third party cannot update edit
+	let req_update_edit = hc_auth_tester2.do_patch(
+		&edit_id_route,
+		json!({
+			"new_content": "This is just an updated suggestion"
+		})
+	);
+	
+	req_update_edit.await?.print().await?;
+
+	// -- Delete created edit
+	// check that post author cannot delete edit
+	let req_delete_edit = hc.do_delete(
+		&edit_id_route
+	);
+	
+	req_delete_edit.await?.print().await?;
+
+	// check that third party cannot delete edit
+	let req_delete_edit = hc_auth_tester2.do_delete(
+		&edit_id_route
+	);
+
+	req_delete_edit.await?.print().await?;
+	
+	// check that editor can delete edit
+	let req_delete_edit = hc_auth_tester.do_delete(
+		&edit_id_route
+	);
+	
+	req_delete_edit.await?.print().await?;
+	
+	// -- Re-create edit
+	let req_create_edit = hc_auth_tester.do_post(
+		"/api/edit",
+		json!({
+			"post_id": id,
+			"new_content": "This is just a suggestion"
+		})
+	);
+
+	let req_create_edit = req_create_edit.await?;
 	req_create_edit.print().await?;
 
 	// -- List outgoing edits by `hc_auth_tester`
@@ -113,8 +228,25 @@ async fn main() -> Result<()> {
 			"accept": true
 		})
 	);
-
 	req_accept_edit.await?.print().await?;
+
+	let edit_id_route = format!("/api/edit/{}", edit_id);
+	// -- Check that editor cannot update a non-pending edit
+	let req_update_edit = hc_auth_tester.do_patch(
+		&edit_id_route,
+		json!({
+			"new_content": "This is an update after author's verdict"
+		})
+	);
+
+	req_update_edit.await?.print().await?;
+
+	// -- Check that editor cannot delete an accepted edit
+	let req_delete_edit = hc_auth_tester.do_delete(
+		&edit_id_route
+	);
+
+	req_delete_edit.await?.print().await?;
 
 	// -- Double Accept should fail
 	let req_accept_edit = hc.do_post(

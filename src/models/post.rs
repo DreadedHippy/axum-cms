@@ -76,7 +76,7 @@ impl PostBmc {
 
 	pub async fn list(
 		app_state: &AppState,
-		filters: Option<PostFilter>,
+		filters: Option<Vec<PostFilter>>,
 		list_options: Option<ListOptions>
 	) -> ModelResult<Vec<Post>> {
 		base::list_no_auth::<Self, _, _>(app_state, filters, list_options).await

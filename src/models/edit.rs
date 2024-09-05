@@ -66,10 +66,16 @@ pub struct EditForCreateRequestBody {
 
 
 #[derive(Deserialize, Debug, Fields)]
-/// Struct holding fields required from client to edit an edit_suggestion
+/// Struct holding fields required to update an edit in the DB
 pub struct EditForUpdate {
 	pub new_content: Option<String>,
 	pub status: Option<EditStatus>,
+}
+
+#[derive(Deserialize, Debug)]
+/// Struct holding fields required from client to update an edit's content
+pub struct EditForUpdateClientRequest {
+	pub new_content: String
 }
 
 
@@ -134,7 +140,7 @@ impl EditBmc {
 		base::get::<Self, _>(ctx, app_state, id).await // Underscore on the second generic parameter because we return a model of author, the compiler can infer
 	}
 
-	pub async fn list(ctx: &Ctx, app_state: &AppState, filters: Option<EditFilter>, list_options: Option<ListOptions>) -> ModelResult<Vec<Edit>> {
+	pub async fn list(ctx: &Ctx, app_state: &AppState, filters: Option<Vec<EditFilter>>, list_options: Option<ListOptions>) -> ModelResult<Vec<Edit>> {
 		base::list::<Self, _, _>(ctx, app_state, filters, list_options).await
 	}
 	

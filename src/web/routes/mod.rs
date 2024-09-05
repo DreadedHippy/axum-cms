@@ -5,7 +5,7 @@ use tower_cookies::CookieManagerLayer;
 use crate::web::handlers::{author::{handler_author_list, handler_author_get}, hello::{handler_hello, handler_hello_2}, post::{handler_post_create, handler_post_delete, handler_post_update}};
 use crate::models::AppState;
 
-use super::{handlers::{edit::{handler_edit_accept, handler_edit_create, handler_edit_list_incoming, handler_edit_list_outgoing}, post::{handler_post_get, handler_post_list}}, middlewares::auth::mw_ctx_require};
+use super::{handlers::{edit::{handler_edit_accept, handler_edit_create, handler_edit_delete, handler_edit_get, handler_edit_list_all, handler_edit_list_incoming, handler_edit_list_outgoing, handler_edit_reject, handler_edit_update}, post::{handler_post_get, handler_post_list}}, middlewares::auth::mw_ctx_require};
 
 pub fn routes_main(app_state: AppState) -> Router {
 	Router::new()
@@ -59,31 +59,31 @@ fn routes_edit(app_state: AppState) -> Router {
 		.route(
 			"/edit",
 			post(handler_edit_create)
-			.route_layer(middleware::from_fn(mw_ctx_require))
+			.get(handler_edit_list_all)
+		)
+		.route(
+			"/edit/:id",
+			get(handler_edit_get)
+			.patch(handler_edit_update)
+			.delete(handler_edit_delete)
 		)
 		.route(
 			"/edit/accept/:id",
 			post(handler_edit_accept)
-			.route_layer(middleware::from_fn(mw_ctx_require))
+		)
+		.route(
+			"/edit/reject/:id",
+			post(handler_edit_reject)
 		)
 		.route(
 			"/edit/outgoing",
 			get(handler_edit_list_outgoing)
-			.route_layer(middleware::from_fn(mw_ctx_require))
 		)
 		.route(
 			"/edit/incoming",
 			get(handler_edit_list_incoming)
-			.route_layer(middleware::from_fn(mw_ctx_require))
 		)
-		// .route("/post/:id", 
-		// 	get(handler_post_get)
-		// )
-		// .route("/post/:id",
-		// 	patch(handler_post_update)
-		// 	.delete(handler_post_delete)
-		// 	.route_layer(middleware::from_fn(mw_ctx_require))
-		// )
+		.route_layer(middleware::from_fn(mw_ctx_require))
 		.with_state(app_state)
 }
 
