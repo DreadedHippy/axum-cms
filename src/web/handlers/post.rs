@@ -107,6 +107,20 @@ pub async fn handler_post_delete(
 
 	debug!("{:<12} - handler_post_delete", "HANDLER");
 
+	let post = PostBmc::get(&ctx, &app_state, id).await?;
+
+	let author_id = ctx.user_id();
+
+	if post.author_id != author_id {
+		return Err(
+			ServerError::UpdateFail(
+				"Post".to_string(),
+				"Only post author can delete post".to_string(),
+				CrudError::UNAUTHORIZED
+			)
+		)
+	}
+
 	let _result = PostBmc::delete(&ctx, &app_state, id).await?;
 
 	let response  = CustomResponse::new(
