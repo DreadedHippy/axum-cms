@@ -6,6 +6,7 @@ use crate::{ctx::Ctx, models::{post::{self, Post, PostBmc, PostForCreate, PostFo
 use crate::web::custom_extractor::ApiError;
 use crate::web::{error::{ServerResult, ServerError}, custom_response::{CustomResponse, CustomResponseData}};
 
+const TABLE_NAME: &str = "POST";
 /// Handler to create a post
 pub async fn handler_post_create(
 	State(app_state): State<AppState>,
@@ -78,7 +79,7 @@ pub async fn handler_post_update(
 	if post.author_id != author_id {
 		return Err(
 			ServerError::UpdateFail(
-				"Post".to_string(),
+				TABLE_NAME.to_string(),
 				"Only post author can update post".to_string(),
 				CrudError::UNAUTHORIZED
 			)
@@ -114,7 +115,7 @@ pub async fn handler_post_delete(
 	if post.author_id != author_id {
 		return Err(
 			ServerError::UpdateFail(
-				"Post".to_string(),
+				TABLE_NAME.to_string(),
 				"Only post author can delete post".to_string(),
 				CrudError::UNAUTHORIZED
 			)
