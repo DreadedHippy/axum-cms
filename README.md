@@ -32,25 +32,25 @@ See [here](src/web/routes/mod.rs) for the code implementation of all the routes
 - POST `/login`: Login with email and password
 
 ### Author
-- GET `/author`: get all authors
-- GET `/author/:id`: Get specific author.
+- GET `/api/author`: get all authors
+- GET `/api/author/:id`: Get specific author.
 <!-- - PATCH `/author/:id`: Edit specific author. -->
 
 ### Post
-- GET `/post`: Get all posts
-- GET `/post/:id`: Get specific post
-- PATCH `/post/:id`: Update specific post
-- DELETE `/post/:id`: Delete specific post
+- GET `/api/post`: Get all posts
+- GET `/api/post/:id`: Get specific post
+- PATCH `/api/post/:id`: Update specific post
+- DELETE `/api/post/:id`: Delete specific post
 
 ### Edit
-- GET `/edit`: List edits by/for an author's posts
-- GET `/edit/incoming`: List all incoming edits
-- GET `/edit/outgoing`: List all outgoing edits
-- GET `/edit/:id`: Get edit
-- PATCH `/edit/:id`: Update edit
-- DELETE `/edit/:id`: Delete edit
-- POST `/edit/accept/:id` Accept edit
-- POST `/edit/reject/:id` Reject edit
+- GET `/api/edit`: List edits by/for an author's posts
+- GET `/api/edit/incoming`: List all incoming edits
+- GET `/api/edit/outgoing`: List all outgoing edits
+- GET `/api/edit/:id`: Get edit
+- PATCH `/api/edit/:id`: Update edit
+- DELETE `/api/edit/:id`: Delete edit
+- POST `/api/edit/accept/:id` Accept edit
+- POST `/api/edit/reject/:id` Reject edit
 
 ## Testing
 ## Unit Tests
