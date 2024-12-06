@@ -68,6 +68,18 @@ cargo watch -q -c -w examples/ -x "run --example quick_dev"
 # Run any example while developing
 cargo watch -q -c -w examples/ -x "run --example {FILE_NAME}"` # where `FILE_NAME` is the name of the file containing the test
 ```
+
+
+## Notes
+- **IMPORTANT!**: If you decide to change `DEV_DATABASE_URL`, edit the following files accordingly:
+	- `sql\dev_initial\00-recreate-db.sql`
+	- `src\_dev_utils\dev_db.rs`
+- Use the "WithRejection<`CUSTOM_JSON_BODY`, ApiError>" as Json body type in order to enable JSON extraction errors
+- ~~All errors can be found in `src/models/error.rs` in the `Error` enum. You may write custom responses for each error inside the `impl IntoResponse` block for the `Error` enum~~
+- All fixtures are prefixed with 'fx'
+- An e2e example is given in the `/examples` folder 
+- Run the example with the command: `cargo run --example {FILE_NAME}`, where `FILE_NAME` is the name of the file containing the example, in this case, `quick_dev`
+- With `cargo watch` installed, you can automatically re-run the example on each file save with the command: `cargo watch -q -c -w examples/ -x "run --example {FILE_NAME}"` instead.
 <!-- ## Instructions
 1. Setup your configuration in [the config file](.cargo/config.toml).
 2. With all your environment variables set, start up your postgres dev server.
